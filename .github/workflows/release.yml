@@ -1,0 +1,148 @@
+name: Release with Checksums
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0)'
+        required: true
+
+jobs:
+  build-and-checksum:
+    name: Build, Generate Checksums, and Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        registry-url: 'https://registry.npmjs.org'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+    
+    - name: Build
+      run: npm run build
+    
+    - name: Build browser bundle
+      run: npm run build:browser
+    
+    - name: Generate SHA256 checksums
+      run: |
+        cd dist
+        
+        # Generate checksums for all dist files
+        echo "# SHA256 Checksums for @grifortis/schiavinato-sharing" > ../CHECKSUMS.txt
+        echo "" >> ../CHECKSUMS.txt
+        echo "Version: ${GITHUB_REF_NAME}" >> ../CHECKSUMS.txt
+        echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> ../CHECKSUMS.txt
+        echo "" >> ../CHECKSUMS.txt
+        echo "## Main Package Files" >> ../CHECKSUMS.txt
+        echo "" >> ../CHECKSUMS.txt
+        
+        # Main dist files
+        sha256sum index.js index.mjs index.d.ts index.d.mts >> ../CHECKSUMS.txt
+        
+        echo "" >> ../CHECKSUMS.txt
+        echo "## Browser Bundle" >> ../CHECKSUMS.txt
+        echo "" >> ../CHECKSUMS.txt
+        
+        # Browser bundle
+        cd browser
+        sha256sum index.global.js >> ../../CHECKSUMS.txt
+        cd ..
+        
+        echo "" >> ../CHECKSUMS.txt
+        echo "## Verification" >> ../CHECKSUMS.txt
+        echo "" >> ../CHECKSUMS.txt
+        echo "To verify files, run:" >> ../CHECKSUMS.txt
+        echo "  sha256sum -c CHECKSUMS.txt" >> ../CHECKSUMS.txt
+        
+        cd ..
+        
+        # Also create a JSON version for programmatic use
+        echo "{" > CHECKSUMS.json
+        echo "  \"version\": \"${GITHUB_REF_NAME}\"," >> CHECKSUMS.json
+        echo "  \"generated\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"," >> CHECKSUMS.json
+        echo "  \"checksums\": {" >> CHECKSUMS.json
+        
+        # Add checksums to JSON
+        cd dist
+        echo "    \"index.js\": \"$(sha256sum index.js | awk '{print $1}')\"," >> ../CHECKSUMS.json
+        echo "    \"index.mjs\": \"$(sha256sum index.mjs | awk '{print $1}')\"," >> ../CHECKSUMS.json
+        echo "    \"index.d.ts\": \"$(sha256sum index.d.ts | awk '{print $1}')\"," >> ../CHECKSUMS.json
+        echo "    \"index.d.mts\": \"$(sha256sum index.d.mts | awk '{print $1}')\"," >> ../CHECKSUMS.json
+        cd browser
+        echo "    \"browser/index.global.js\": \"$(sha256sum index.global.js | awk '{print $1}')\"" >> ../../CHECKSUMS.json
+        cd ../..
+        
+        echo "  }" >> CHECKSUMS.json
+        echo "}" >> CHECKSUMS.json
+        
+        # Display checksums
+        echo "=== Generated Checksums ==="
+        cat CHECKSUMS.txt
+    
+    - name: Create tarball with checksums
+      run: |
+        # Create a release tarball
+        tar -czf grifortis-schiavinato-sharing-${GITHUB_REF_NAME}.tar.gz \
+          dist/ \
+          CHECKSUMS.txt \
+          CHECKSUMS.json \
+          README.md \
+          LICENSE \
+          CHANGELOG.md \
+          package.json
+        
+        # Generate checksum for the tarball itself
+        sha256sum grifortis-schiavinato-sharing-${GITHUB_REF_NAME}.tar.gz > grifortis-schiavinato-sharing-${GITHUB_REF_NAME}.tar.gz.sha256
+        
+        echo "=== Tarball Checksum ==="
+        cat grifortis-schiavinato-sharing-${GITHUB_REF_NAME}.tar.gz.sha256
+    
+    - name: Upload checksums to release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          CHECKSUMS.txt
+          CHECKSUMS.json
+          grifortis-schiavinato-sharing-*.tar.gz
+          grifortis-schiavinato-sharing-*.tar.gz.sha256
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Publish to NPM
+      run: npm publish --provenance --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    
+    - name: Comment on release with checksums
+      if: github.event_name == 'release'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const checksums = fs.readFileSync('CHECKSUMS.txt', 'utf8');
+          
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.payload.release.id,
+            body: `## 🔐 SHA256 Checksums\n\n\`\`\`\n${checksums}\n\`\`\`\n\n**Verification**: Download \`CHECKSUMS.txt\` and run:\n\`\`\`bash\nsha256sum -c CHECKSUMS.txt\n\`\`\``
+          });
+

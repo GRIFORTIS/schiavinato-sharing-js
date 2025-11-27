@@ -77,7 +77,7 @@ To enable automatic publishing to NPM when you create a release:
 2. **Add Token to GitHub:**
    - Go to repository Settings → Secrets and variables → Actions
    - Click "New repository secret"
-   - Name: `NPM_TOKEN`
+   - Name: `KENPM_TON`
    - Value: (paste the NPM token)
 
 ### 5. Verify CI is Working

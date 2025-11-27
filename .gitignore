@@ -25,3 +25,9 @@ coverage/
 
 # ESLint
 .eslintcache
+
+# Checksums (generated during release)
+CHECKSUMS.txt
+CHECKSUMS.json
+*.tar.gz
+*.tar.gz.sha256

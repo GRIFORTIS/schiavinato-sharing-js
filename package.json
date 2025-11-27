@@ -29,7 +29,9 @@
     "typecheck": "tsc --noEmit",
     "prepare": "husky install || true",
     "prepublishOnly": "npm run typecheck && npm run test && npm run build",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "verify": "bash scripts/verify-checksums.sh",
+    "verify:latest": "bash scripts/verify-checksums.sh latest"
   },
   "keywords": [
     "bip39",
