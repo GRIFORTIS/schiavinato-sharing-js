@@ -1,4 +1,4 @@
-# @grifortis/schiavinato-sharing
+# @grifortis/schiavinato-sharing-js
 
 **Production-ready JavaScript/TypeScript library for Schiavinato Sharing**
 
