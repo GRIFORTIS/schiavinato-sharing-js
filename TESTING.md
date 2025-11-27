@@ -2,7 +2,7 @@
 
 ## Test Coverage
 
-The Schiavinato Sharing JS library has **94.28% test coverage** with **100 tests** (2 skipped) across 7 test files.
+The Schiavinato Sharing JS library has **94%+ test coverage** with **100 tests** across 7 test files.
 
 ### Coverage Breakdown
 
@@ -13,263 +13,181 @@ The Schiavinato Sharing JS library has **94.28% test coverage** with **100 tests
 | Schiavinato (checksums, recover, split) | 94.21% | 78.72% | 100% | 94.21% |
 | Utils (random, security, validation, etc.) | 91.39% | 79.45% | 94.44% | 91.39% |
 
-## Running Tests Manually in Cursor
+---
 
-### Method 1: Terminal in Cursor
+## Running Tests
 
-1. Open terminal in Cursor (`` Ctrl+` `` or `` Cmd+` ``)
-2. Navigate to the project:
-   ```bash
-   cd schiavinato-sharing-js
-   ```
-3. Run tests:
-   ```bash
-   # Run all tests
-   npm test
-   
-   # Run tests in watch mode (auto-rerun on changes)
-   npm run test:watch
-   
-   # Run tests with coverage report
-   npm run test:coverage
-   
-   # Run linter
-   npm run lint
-   
-   # Run type checking
-   npm run typecheck
-   
-   # Run everything (same as CI)
-   npm run lint && npm run typecheck && npm test
-   ```
-
-### Method 2: NPM Scripts View
-
-1. In Cursor, open the Explorer sidebar
-2. Look for "NPM SCRIPTS" section
-3. Click on any script to run it:
-   - `test` - Run all tests once
-   - `test:watch` - Run tests in watch mode
-   - `test:coverage` - Generate coverage report
-   - `lint` - Check code style
-   - `typecheck` - Check TypeScript types
-
-### Method 3: Quick Test Specific File
+### Quick Start
 
 ```bash
-# Test a specific file
-npm test -- field.test.ts
-
-# Test with pattern
-npm test -- security
-```
-
-## Automated Testing (CI/CD)
-
-### GitHub Actions Workflows
-
-We've set up two GitHub Actions workflows:
-
-#### 1. Continuous Integration (CI) - `.github/workflows/ci.yml`
-
-**Triggers:**
-- Push to `main` or `develop` branches
-- Pull requests to `main` or `develop`
-
-**What it does:**
-- ✅ Runs tests on Node.js 18, 20, and 22
-- ✅ Runs linter
-- ✅ Runs type checking
-- ✅ Generates coverage report
-- ✅ Uploads coverage to Codecov
-- ✅ Builds the project
-- ✅ Creates build artifacts
-
-**Status Badge:**
-```markdown
-![CI](https://github.com/GRIFORTIS/schiavinato-sharing-js/workflows/CI/badge.svg)
-```
-
-#### 2. Publish to NPM - `.github/workflows/publish.yml`
-
-**Triggers:**
-- When a new GitHub release is created
-
-**What it does:**
-- ✅ Runs full test suite
-- ✅ Builds the project
-- ✅ Publishes to NPM (requires NPM_TOKEN secret)
-
-### Git Hooks (Husky)
-
-We've configured Husky to run tests automatically during git operations:
-
-#### Pre-commit Hook
-
-**Runs before every commit:**
-- ✅ `npm run lint` - Checks code style
-- ✅ `npm run typecheck` - Validates TypeScript types
-- ✅ `npm test` - Runs all tests
-
-**If any check fails, the commit is blocked.**
-
-#### Pre-push Hook
-
-**Runs before every push:**
-- ✅ `npm run test:coverage` - Full test suite with coverage
-- ✅ `npm run build` - Ensures the project builds
-
-**If any check fails, the push is blocked.**
-
-### Setting Up Husky
-
-**First-time setup** (after cloning the repo):
-
-```bash
-cd schiavinato-sharing-js
+# Install dependencies
 npm install
-npm run prepare
+
+# Run all tests
+npm test
+
+# Run tests in watch mode (auto-rerun on changes)
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run linter
+npm run lint
+
+# Run type checking
+npm run typecheck
+
+# Run everything (same as CI)
+npm run lint && npm run typecheck && npm test
 ```
 
-This will:
-1. Install Husky
-2. Configure git hooks
-3. Make hooks executable
+---
 
-**To temporarily bypass hooks** (not recommended):
+## Test Structure
 
-```bash
-# Skip pre-commit hook
-git commit --no-verify -m "message"
+### Test Files
 
-# Skip pre-push hook
-git push --no-verify
+```
+test/
+├── field.test.ts           # GF(2053) field arithmetic
+├── lagrange.test.ts        # Lagrange interpolation
+├── polynomial.test.ts      # Polynomial operations
+├── checksums.test.ts       # Checksum generation/validation
+├── security.test.ts        # Security utilities
+├── seedGenerator.test.ts   # Test mnemonic generation
+└── integration.test.ts     # End-to-end workflows
 ```
 
-## Test Files
+### Test Categories
 
-| File | Tests | Description |
-|------|-------|-------------|
-| `field.test.ts` | 15 | Tests for GF(2053) field operations |
-| `lagrange.test.ts` | 12 | Tests for Lagrange interpolation |
-| `polynomial.test.ts` | 8 | Tests for polynomial evaluation |
-| `checksums.test.ts` | 8 | Tests for row and master checksums |
-| `security.test.ts` | 23 (2 skipped) | Tests for constant-time operations and memory wiping |
-| `seedGenerator.test.ts` | 21 | Tests for BIP39 mnemonic generation |
-| `integration.test.ts` | 13 | End-to-end tests using TEST_VECTORS.md |
+1. **Unit Tests**: Test individual functions and modules
+2. **Integration Tests**: Test complete split/recover workflows
+3. **Edge Cases**: Test boundary conditions and error handling
+4. **Security Tests**: Verify security-critical operations
 
-## Coverage Report
+---
 
-After running `npm run test:coverage`, you can view the HTML coverage report:
+## Continuous Integration
+
+Tests run automatically on:
+- Every push to any branch
+- Every pull request
+- Before npm publish
+
+See `.github/workflows/ci.yml` for CI configuration.
+
+---
+
+## Writing Tests
+
+### Example Test
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { splitMnemonic, recoverMnemonic } from '../src';
+
+describe('Schiavinato Sharing', () => {
+  it('should split and recover a 24-word mnemonic', () => {
+    const mnemonic = 'abandon abandon abandon ... about';
+    const shares = splitMnemonic(mnemonic, 2, 3);
+    
+    const recovered = recoverMnemonic([shares[0], shares[1]]);
+    
+    expect(recovered).toBe(mnemonic);
+  });
+});
+```
+
+### Best Practices
+
+- **Test one thing**: Each test should verify a single behavior
+- **Clear names**: Test names should describe what they verify
+- **Arrange-Act-Assert**: Structure tests with clear setup, execution, and verification
+- **Edge cases**: Test boundary conditions and error paths
+- **No randomness**: Use deterministic test data
+
+---
+
+## Test Vectors
+
+The library is tested against the official test vectors from the specification:
+
+🔗 [TEST_VECTORS.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/TEST_VECTORS.md)
+
+These vectors ensure compatibility with other implementations and the reference specification.
+
+---
+
+## Coverage Reports
+
+After running `npm run test:coverage`, view the detailed HTML report:
 
 ```bash
-# On macOS
 open coverage/index.html
-
-# On Linux
-xdg-open coverage/index.html
-
-# On Windows
-start coverage/index.html
 ```
 
-Or manually open: `schiavinato-sharing-js/coverage/index.html`
+The report shows:
+- Line-by-line coverage
+- Uncovered branches
+- Function coverage
+- File-by-file breakdown
 
-## Continuous Monitoring
+---
 
-### GitHub Checks
+## Contributing Tests
 
-Every pull request and push will show:
-- ✅ All tests passing
-- ✅ Linting passing  
-- ✅ Type checking passing
-- ✅ Build succeeding
-- ✅ Coverage report
+When contributing code, please:
 
-### Codecov Integration
+1. **Add tests** for new features
+2. **Maintain coverage** above 90%
+3. **Test edge cases** and error conditions
+4. **Follow existing patterns** in test files
+5. **Run all tests** before submitting PR
 
-Coverage reports are uploaded to Codecov on every CI run. To view:
-1. Go to https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js
-2. View coverage trends over time
-3. See per-file coverage
-4. Get coverage badges for README
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
-## What Tests Don't Cover
-
-The small percentage of uncovered code consists of:
-- Error paths that are difficult to trigger (e.g., crypto API failures)
-- Defensive error handling
-- Platform-specific fallback code
-- Some validation edge cases
-
-These are intentionally defensive code paths that shouldn't occur in normal operation.
-
-## Best Practices
-
-1. **Always run tests before committing**
-   - Hooks will enforce this, but run manually first to save time
-
-2. **Write tests for new features**
-   - Maintain the 94%+ coverage level
-   - Add both unit and integration tests
-
-3. **Check coverage for new code**
-   - Run `npm run test:coverage` locally
-   - Review coverage HTML report
-
-4. **Fix failing tests immediately**
-   - Don't push with failing tests
-   - CI will block merges if tests fail
-
-5. **Monitor CI status**
-   - Check GitHub Actions tab
-   - Fix CI failures promptly
+---
 
 ## Troubleshooting
 
-### Tests fail locally but CI passes
-- Update dependencies: `npm ci`
-- Check Node.js version: `node --version` (should be 18+)
+### Tests Fail Locally
 
-### Hooks not running
-- Reinstall Husky: `npm run prepare`
-- Check `.husky/` directory exists
-- Verify hooks are executable: `chmod +x .husky/*`
-
-### Coverage report not generated
-- Install coverage package: `npm install`
-- Clear cache: `rm -rf coverage/ node_modules/.vitest/`
-
-### Slow tests
-- Use `npm run test:watch` for development
-- It only runs tests affected by your changes
-
-## Running Tests in Different Environments
-
-### Local Development
 ```bash
-npm run test:watch
+# Clean install
+rm -rf node_modules package-lock.json
+npm install
+npm test
 ```
 
-### Before Committing
+### Coverage Not Generated
+
 ```bash
-npm test && npm run lint && npm run typecheck
+# Ensure vitest is installed
+npm install --save-dev vitest @vitest/coverage-v8
+
+# Run coverage
+npm run test:coverage
 ```
 
-### Before Publishing
+### TypeScript Errors
+
 ```bash
-npm run prepublishOnly
+# Check types
+npm run typecheck
+
+# Rebuild
+npm run build
 ```
 
-### CI/CD (Automatic)
-- Tests run on every push
-- Tests run on every PR
-- Tests run before publishing
+---
 
-## Need Help?
+## Resources
 
-- Check test output for detailed error messages
-- Review existing test files for examples
-- See `CONTRIBUTING.md` for development guidelines
-- Open an issue if tests are failing unexpectedly
+- **Vitest Documentation**: https://vitest.dev/
+- **Test Vectors**: [TEST_VECTORS.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/TEST_VECTORS.md)
+- **Specification**: [WHITEPAPER.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md)
 
+---
+
+**Questions?** Open an issue or discussion on GitHub.
