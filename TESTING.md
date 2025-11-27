@@ -2,7 +2,7 @@
 
 ## Test Coverage
 
-The Schiavinato Sharing JS library has **94.28% test coverage** with 102 tests across 7 test files.
+The Schiavinato Sharing JS library has **94.28% test coverage** with **100 tests** (2 skipped) across 7 test files.
 
 ### Coverage Breakdown
 
@@ -154,7 +154,7 @@ git push --no-verify
 | `lagrange.test.ts` | 12 | Tests for Lagrange interpolation |
 | `polynomial.test.ts` | 8 | Tests for polynomial evaluation |
 | `checksums.test.ts` | 8 | Tests for row and master checksums |
-| `security.test.ts` | 25 | Tests for constant-time operations and memory wiping |
+| `security.test.ts` | 23 (2 skipped) | Tests for constant-time operations and memory wiping |
 | `seedGenerator.test.ts` | 21 | Tests for BIP39 mnemonic generation |
 | `integration.test.ts` | 13 | End-to-end tests using TEST_VECTORS.md |
 
