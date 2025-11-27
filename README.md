@@ -4,9 +4,11 @@
 
 Human-executable secret sharing for BIP39 mnemonics using GF(2053).
 
+[![CI](https://github.com/GRIFORTIS/schiavinato-sharing-js/workflows/CI/badge.svg)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions)
+[![codecov](https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js/graph/badge.svg?token=3b59c6f6-fd7f-404e-b678-c688b652809f)](https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js)
 [![npm version](https://img.shields.io/npm/v/@grifortis/schiavinato-sharing.svg)](https://www.npmjs.com/package/@grifortis/schiavinato-sharing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/GRIFORTIS/schiavinato-sharing-js/workflows/CI/badge.svg)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 
 ---
 
