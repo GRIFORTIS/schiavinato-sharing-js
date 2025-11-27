@@ -100,3 +100,25 @@ export function secureWipeNumber(_value: number): number {
   return 0;
 }
 
+/**
+ * Attempts to overwrite a string variable by reassigning it to zeros.
+ * 
+ * Note: JavaScript strings are immutable, so this has limited effectiveness.
+ * The original string may remain in memory until garbage collected, but this
+ * reduces the window of vulnerability by breaking the reference.
+ * 
+ * @param str - The string to wipe
+ * @returns A zeroed-out string of the same length
+ * 
+ * @example
+ * let mnemonic = 'abandon abandon abandon...';
+ * // ... use mnemonic ...
+ * mnemonic = wipeString(mnemonic); // Now '\0\0\0...'
+ */
+export function wipeString(str: string): string {
+  if (typeof str === 'string' && str.length > 0) {
+    return '\0'.repeat(str.length);
+  }
+  return '';
+}
+

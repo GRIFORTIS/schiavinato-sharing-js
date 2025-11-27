@@ -1,7 +1,7 @@
 {
   "name": "@grifortis/schiavinato-sharing",
   "version": "0.1.0",
-  "description": "Human-executable secret sharing for BIP39 mnemonics using GF(2053)",
+  "description": "Human-executable secret sharing for BIP39 mnemonics using GF(2053) - Universal multi-chain custody for Bitcoin, Ethereum, and all BIP39-compatible wallets",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -27,6 +27,7 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "typecheck": "tsc --noEmit",
+    "prepare": "husky install || true",
     "prepublishOnly": "npm run typecheck && npm run test && npm run build",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
   },
@@ -37,11 +38,16 @@
     "mnemonic",
     "cryptocurrency",
     "bitcoin",
+    "ethereum",
+    "multi-chain",
     "inheritance",
     "backup",
     "schiavinato",
     "gf2053",
-    "threshold-cryptography"
+    "threshold-cryptography",
+    "wallet",
+    "custody",
+    "disaster-recovery"
   ],
   "author": "GRIFORTIS <info@grifortis.com>",
   "license": "MIT",
@@ -63,6 +69,7 @@
     "@typescript-eslint/parser": "^6.15.0",
     "@vitest/coverage-v8": "^1.0.4",
     "eslint": "^8.56.0",
+    "husky": "^9.1.7",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
     "vitest": "^1.0.4"
@@ -74,4 +81,3 @@
     "access": "public"
   }
 }
-

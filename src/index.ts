@@ -73,7 +73,8 @@ export {
   constantTimeEqual,
   constantTimeStringEqual,
   secureWipeArray,
-  secureWipeNumber
+  secureWipeNumber,
+  wipeString
 } from './utils/security.js';
 
 // Export all TypeScript types

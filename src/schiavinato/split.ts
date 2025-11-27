@@ -7,7 +7,7 @@
 
 import { validateMnemonic as validateBip39 } from '@scure/bip39';
 import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
-import { mod, FIELD_PRIME } from '../core/field.js';
+import { FIELD_PRIME } from '../core/field.js';
 import { randomPolynomial, evaluatePolynomial } from '../core/polynomial.js';
 import { computeRowChecks, computeMasterCheck } from './checksums.js';
 import { sanitizeMnemonic, ensureSupportedWordCount } from '../utils/validation.js';

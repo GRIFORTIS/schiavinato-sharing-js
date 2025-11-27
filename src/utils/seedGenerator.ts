@@ -7,7 +7,6 @@
 
 import { generateMnemonic } from '@scure/bip39';
 import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
-import { randomBytes } from '@noble/hashes/utils';
 
 /**
  * Generates a cryptographically valid BIP39 mnemonic with proper checksum.
@@ -30,12 +29,9 @@ export function generateValidMnemonic(wordCount: 12 | 24): string {
   
   // Calculate entropy bits: 12 words = 128 bits, 24 words = 256 bits
   const entropyBits = wordCount === 12 ? 128 : 256;
-  const entropyBytes = entropyBits / 8;
-  
-  // Generate random entropy
-  const entropy = randomBytes(entropyBytes);
   
   // Convert entropy to mnemonic (includes checksum calculation)
+  // generateMnemonic() from @scure/bip39 generates its own random entropy
   return generateMnemonic(englishWordlist, entropyBits);
 }
 

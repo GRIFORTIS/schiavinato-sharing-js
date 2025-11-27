@@ -22,3 +22,6 @@ dist/
 # Testing
 coverage/
 .nyc_output/
+
+# ESLint
+.eslintcache

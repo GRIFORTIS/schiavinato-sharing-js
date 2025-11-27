@@ -16,15 +16,19 @@ const globalScope = typeof globalThis !== 'undefined'
 let randomSource: RandomSource | null = null;
 
 // Try to use Web Crypto API
-if (typeof globalScope === 'object' && 'crypto' in globalScope && globalScope.crypto && 
-    typeof (globalScope.crypto as any).getRandomValues === 'function') {
-  randomSource = (globalScope.crypto as any);
+if (typeof globalScope === 'object' && 'crypto' in globalScope && globalScope.crypto) {
+  const crypto = (globalScope as Record<string, unknown>).crypto;
+  if (crypto && typeof (crypto as Record<string, unknown>).getRandomValues === 'function') {
+    randomSource = crypto as unknown as RandomSource;
+  }
 }
 
-// In Node.js, if Web Crypto is not available, try to import crypto
-if (!randomSource && typeof require !== 'undefined') {
+// In Node.js, if Web Crypto is not available, try to import crypto using dynamic import
+if (!randomSource) {
   try {
-    const crypto = require('crypto');
+    // This will be tree-shaken in browser builds
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const crypto = typeof require !== 'undefined' ? require('crypto') : null;
     if (crypto && crypto.randomFillSync) {
       randomSource = {
         getRandomValues(array: Uint32Array) {

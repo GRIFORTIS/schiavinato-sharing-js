@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - Unreleased
+
+### Added
+- `wipeString` utility function for attempting to clear sensitive strings from memory
+  - Matches HTML reference implementation
+  - Limited effectiveness due to JavaScript string immutability, but reduces vulnerability window
+
+### Security
+- All Schiavinato checksums (row and master) use constant-time comparison to prevent timing attacks
+- Memory wiping functions (`secureWipeArray`, `secureWipeNumber`, `wipeString`) reduce memory exposure window
+- **Note**: BIP39 checksum validation is delegated to `@scure/bip39`, which does NOT use constant-time comparison
+  - This is a known limitation of the `@scure/base` library's checksum implementation
+  - The vulnerability is minimal in practice but theoretically allows timing attacks on BIP39 validation
+  - Consider implementing custom BIP39 validation with constant-time comparison for highest security applications
+
 ## [0.1.0] - 2025-11-23
 
 ### Added

@@ -9,7 +9,8 @@ import {
   constantTimeEqual, 
   constantTimeStringEqual,
   secureWipeArray,
-  secureWipeNumber 
+  secureWipeNumber,
+  wipeString
 } from '../src/utils/security.js';
 
 describe('Security Utilities', () => {
@@ -142,6 +143,62 @@ describe('Security Utilities', () => {
       expect(secureWipeNumber(1234)).toBe(0);
       expect(secureWipeNumber(-1)).toBe(0);
       expect(secureWipeNumber(0)).toBe(0);
+    });
+  });
+
+  describe('wipeString', () => {
+    it('should return a null-filled string of the same length', () => {
+      const original = 'hello';
+      const wiped = wipeString(original);
+      expect(wiped).toBe('\0\0\0\0\0');
+      expect(wiped.length).toBe(original.length);
+    });
+
+    it('should handle empty strings', () => {
+      const wiped = wipeString('');
+      expect(wiped).toBe('');
+    });
+
+    it('should handle long strings', () => {
+      const original = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+      const wiped = wipeString(original);
+      expect(wiped.length).toBe(original.length);
+      expect(wiped).toBe('\0'.repeat(original.length));
+    });
+
+    it('should handle strings with special characters', () => {
+      const original = 'test@123!';
+      const wiped = wipeString(original);
+      expect(wiped.length).toBe(original.length);
+      expect(wiped).toBe('\0\0\0\0\0\0\0\0\0');
+    });
+
+    it('should handle unicode strings', () => {
+      const original = '日本語テスト';
+      const wiped = wipeString(original);
+      expect(wiped.length).toBe(original.length);
+      expect(wiped).toBe('\0'.repeat(original.length));
+    });
+
+    it('should handle mnemonic strings', () => {
+      const mnemonic = 'spin result brand ahead poet carpet unusual chronic denial festival toy autumn';
+      const wiped = wipeString(mnemonic);
+      expect(wiped.length).toBe(mnemonic.length);
+      // Verify it's all null bytes
+      for (let i = 0; i < wiped.length; i++) {
+        expect(wiped.charCodeAt(i)).toBe(0);
+      }
+    });
+
+    it('should not affect the original string (strings are immutable)', () => {
+      const original = 'sensitive data';
+      const wiped = wipeString(original);
+      
+      // Original is unchanged (JS strings are immutable)
+      expect(original).toBe('sensitive data');
+      // But we get a new wiped string
+      expect(wiped).toBe('\0\0\0\0\0\0\0\0\0\0\0\0\0\0');
+      expect(wiped).not.toBe(original);
     });
   });
 
