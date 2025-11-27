@@ -288,3 +288,38 @@ GitHub Actions uses Dependabot to update workflow dependencies. Review and merge
 - Check husky hooks in `.husky/`
 - Open an issue if you encounter problems
 
+---
+
+## Setup Verification Checklist
+
+### Critical (Required for CI)
+- [ ] Push all changes to GitHub
+- [ ] Enable GitHub Actions (if disabled)
+- [ ] Verify CI passes on Actions tab
+
+### Recommended
+- [ ] Add `CODECOV_TOKEN` to GitHub Secrets
+- [ ] Add status badges to README
+- [ ] Enable branch protection
+
+### Optional (For Auto-Publishing)
+- [ ] Add `NPM_TOKEN` to GitHub Secrets
+- [ ] Test release workflow
+
+### Quick Verification
+
+**Check CI Status:**
+Visit: https://github.com/GRIFORTIS/schiavinato-sharing-js/actions
+- Should see green checkmarks
+- All workflow runs passing
+
+**Check Repository:**
+Visit: https://github.com/GRIFORTIS/schiavinato-sharing-js
+- Green checkmark next to latest commit
+- Badges showing in README
+
+**Check Secrets:**
+Visit: https://github.com/GRIFORTIS/schiavinato-sharing-js/settings/secrets/actions
+- `CODECOV_TOKEN` added (optional)
+- `NPM_TOKEN` added (optional)
+

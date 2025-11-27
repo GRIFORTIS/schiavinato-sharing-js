@@ -2,106 +2,40 @@
 
 ## Reporting Security Vulnerabilities
 
-We take the security of @grifortis/schiavinato-sharing seriously. If you discover a security vulnerability, please report it responsibly.
-
-### How to Report
-
 **DO NOT** open a public GitHub issue for security vulnerabilities.
 
-Instead, please report security issues by emailing: **security@grifortis.com**
+Email: **security@grifortis.com**
 
-Include:
-- Description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Suggested fix (if any)
+Include: Description, steps to reproduce, potential impact, suggested fix (if any)
 
-We will respond within 48 hours and work with you to address the issue.
+Response time: Within 48 hours
 
 ---
 
-## Verifying Package Integrity
+## Package Integrity Verification
 
-### SHA256 Checksums
+### SHA256 Checksums (Automatic)
 
-Every release includes SHA256 checksums for verifying package integrity.
+Every release includes SHA256 checksums attached to GitHub releases.
 
-#### Download and Verify (Automated)
-
-**Linux/macOS:**
+**Quick verify:**
 ```bash
-# Download and run verification script
-curl -fsSL https://raw.githubusercontent.com/GRIFORTIS/schiavinato-sharing-js/main/scripts/verify-checksums.sh | bash -s -- v0.1.0
+npm run verify:latest
 ```
 
-**Windows PowerShell:**
-```powershell
-# Download and run verification script
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/GRIFORTIS/schiavinato-sharing-js/main/scripts/verify-checksums.ps1 -OutFile verify-checksums.ps1
-.\verify-checksums.ps1 v0.1.0
-```
-
-#### Manual Verification
-
-1. **Download checksums from GitHub release:**
-   ```bash
-   curl -fsSL https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/download/v0.1.0/CHECKSUMS.txt -o CHECKSUMS.txt
-   ```
-
-2. **Verify your local files:**
-   ```bash
-   # Linux/macOS
-   cd node_modules/@grifortis/schiavinato-sharing
-   sha256sum -c CHECKSUMS.txt
-   
-   # macOS (alternative)
-   shasum -a 256 -c CHECKSUMS.txt
-   ```
-
-3. **Windows PowerShell:**
-   ```powershell
-   Get-FileHash -Algorithm SHA256 dist\index.js
-   # Compare with CHECKSUMS.txt
-   ```
-
-#### JSON Format
-
-Checksums are also available in JSON format for programmatic verification:
-
+**Manual verify:**
 ```bash
-curl -fsSL https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/download/v0.1.0/CHECKSUMS.json
+curl -fsSL https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/download/v0.1.0/CHECKSUMS.txt -o CHECKSUMS.txt
+cd node_modules/@grifortis/schiavinato-sharing/dist
+sha256sum -c ../../../CHECKSUMS.txt
 ```
 
-Example JSON structure:
-```json
-{
-  "version": "v0.1.0",
-  "generated": "2025-11-27T10:00:00Z",
-  "checksums": {
-    "index.js": "abc123...",
-    "index.mjs": "def456...",
-    "index.d.ts": "ghi789...",
-    "index.d.mts": "jkl012...",
-    "browser/index.global.js": "mno345..."
-  }
-}
-```
-
----
-
-## NPM Package Provenance
-
-We publish packages with **provenance statements** using npm's transparency log.
-
-Verify provenance:
+**NPM Provenance:**
 ```bash
 npm audit signatures
 ```
 
-This ensures:
-- ✅ Package was built by GitHub Actions
-- ✅ Source code matches the published package
-- ✅ Build process is auditable
+Verifies package was built by GitHub Actions from correct source.
 
 ---
 
@@ -109,34 +43,103 @@ This ensures:
 
 ### Constant-Time Operations
 
-All cryptographic comparisons use constant-time algorithms to prevent timing attacks:
+Prevents timing attacks on checksum validation:
 
-- `constantTimeEqual()` - Field element comparison
-- `constantTimeStringEqual()` - String comparison
+**`constantTimeEqual(a, b)`** - Field element comparison
+```typescript
+const diff = a ^ b;  // XOR - constant time
+return diff === 0;
+```
 
-See [TIMING_TESTS.md](./TIMING_TESTS.md) for implementation details.
+**`constantTimeStringEqual(a, b)`** - String comparison
+```typescript
+const maxLen = Math.max(a.length, b.length);
+let diff = a.length ^ b.length;
+for (let i = 0; i < maxLen; i++) {
+  const charA = i < a.length ? a.charCodeAt(i) : 0;
+  const charB = i < b.length ? b.charCodeAt(i) : 0;
+  diff |= charA ^ charB;  // No early exit
+}
+return diff === 0;
+```
 
-### Memory Safety
+**Why constant-time:**
+- No branching on secret values
+- No early exits
+- Fixed number of operations regardless of input
+- Uses only bitwise operations (XOR, OR)
 
-Sensitive data is wiped from memory after use:
+**Used in:**
+- Row checksum validation (`recover.ts` line 143)
+- Master checksum validation (`recover.ts` line 151)
 
-- `secureWipeArray()` - Clear number arrays
-- `secureWipeNumber()` - Clear number variables
-- `wipeString()` - Attempt to clear strings
+### Memory Wiping
 
-See [SECURITY_ANALYSIS.md](./SECURITY_ANALYSIS.md) for complete analysis.
+Clears sensitive data from memory after use:
 
-### Dependencies
+- `secureWipeArray(arr)` - Overwrites arrays with zeros
+- `secureWipeNumber(n)` - Returns 0
+- `wipeString(str)` - Returns null-filled string
 
-We use only audited, well-maintained dependencies:
+**Used in:**
+- `split.ts` finally block (lines 140-145)
+- `recover.ts` finally block (lines 196-198)
 
-- `@scure/bip39` - Audited BIP39 implementation
-- `@noble/hashes` - Audited hash functions
+**Note:** JavaScript strings are immutable, so `wipeString` has limited effectiveness but reduces vulnerability window.
 
-Dependencies are automatically scanned by:
-- GitHub Dependabot
-- npm audit
-- Snyk (if configured)
+### Known Limitation: BIP39 Validation
+
+`@scure/bip39` does NOT use constant-time comparison for BIP39 checksums.
+
+**Risk:** Low-Medium (theoretical, difficult to exploit)
+- SHA-256 computation dominates timing
+- Network latency masks timing differences
+- Requires precise measurement over many iterations
+
+**Scope:** Only affects BIP39 validation, NOT Schiavinato checksums
+
+**Mitigation:** Accept limitation (library is audited and widely trusted) OR implement custom BIP39 validation with constant-time comparison
+
+---
+
+## Timing Tests (Why Skipped)
+
+Two timing tests in `security.test.ts` are skipped because JavaScript timing is too variable in CI to reliably test constant-time behavior.
+
+**The implementations ARE constant-time by design** (verified by code review), but empirical timing tests fail due to:
+- JIT compiler optimizations
+- Garbage collection pauses
+- Shared CPU in CI
+- Variable system load
+
+**For security audits:** Use specialized tools (dudect, ctgrind) or manual code review, not JavaScript timing tests.
+
+---
+
+## Checksum File Formats
+
+### CHECKSUMS.txt
+```
+# SHA256 Checksums for @grifortis/schiavinato-sharing
+Version: v0.1.0
+Generated: 2025-11-27 10:00:00 UTC
+
+abc123... dist/index.js
+def456... dist/index.mjs
+...
+```
+
+### CHECKSUMS.json
+```json
+{
+  "version": "v0.1.0",
+  "generated": "2025-11-27T10:00:00Z",
+  "checksums": {
+    "index.js": "abc123...",
+    ...
+  }
+}
+```
 
 ---
 
@@ -144,104 +147,93 @@ Dependencies are automatically scanned by:
 
 ### 1. Air-Gapped Environments
 
-For maximum security, use this library in air-gapped environments when handling real mnemonics:
-
+For real mnemonics:
 ```bash
-# Download package offline
 npm pack @grifortis/schiavinato-sharing
-
 # Transfer to air-gapped machine
-# Install from tarball
 npm install grifortis-schiavinato-sharing-0.1.0.tgz
 ```
 
 ### 2. Verify Package Integrity
 
-Always verify checksums before use in production:
-
 ```bash
 ./scripts/verify-checksums.sh v0.1.0
+npm audit signatures
 ```
 
 ### 3. Store Shares Securely
 
 - Never store multiple shares together
 - Use different physical locations
-- Consider using hardware security modules (HSMs)
 - Encrypt shares at rest
 
 ### 4. Test Thoroughly
 
-- Test recovery process before using real mnemonics
+- Test recovery before using real mnemonics
 - Verify all shares work correctly
-- Practice the recovery workflow
 
-### 5. Keep Software Updated
+### 5. Keep Updated
 
 ```bash
-# Check for updates
 npm outdated @grifortis/schiavinato-sharing
-
-# Update (after reviewing changes)
 npm update @grifortis/schiavinato-sharing
 ```
 
 ---
 
+## Dependencies
+
+Audited libraries only:
+- `@scure/bip39` - Audited BIP39 implementation
+- `@noble/hashes` - Audited hash functions
+
+Scanned by: GitHub Dependabot, npm audit
+
+---
+
 ## Supported Versions
 
-| Version | Supported          | Status |
-|---------|--------------------|--------|
-| 0.1.x   | ✅ Yes             | Active |
-| < 0.1.0 | ❌ No              | Pre-release |
+| Version | Supported | Status |
+|---------|-----------|--------|
+| 0.1.x   | ✅ Yes    | Active |
+| < 0.1.0 | ❌ No     | Pre-release |
 
 ---
 
 ## Security Audit Status
 
-- **Last Audit**: Not yet audited
 - **Status**: Experimental - use at your own risk
 - **Recommendation**: Independent audit recommended before production use with significant assets
 
-This is experimental software. See [WHITEPAPER.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md) for full security analysis and responsible use guidelines.
+See [WHITEPAPER.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md) for full security analysis.
 
 ---
 
-## Security Best Practices
+## Best Practices
 
 ### For Users
-
-1. ✅ Verify checksums for every release
-2. ✅ Use in air-gapped environments
-3. ✅ Test recovery before real use
-4. ✅ Store shares securely and separately
-5. ✅ Keep software updated
-6. ✅ Review security advisories
+1. Verify checksums for every release
+2. Use in air-gapped environments
+3. Test recovery before real use
+4. Store shares securely and separately
+5. Keep software updated
+6. Review security advisories
 
 ### For Contributors
-
-1. ✅ Never commit secrets or private keys
-2. ✅ Run security tests before PRs
-3. ✅ Follow constant-time coding practices
-4. ✅ Document security considerations
-5. ✅ Report vulnerabilities privately
-6. ✅ Keep dependencies updated
+1. Never commit secrets or private keys
+2. Run security tests before PRs
+3. Follow constant-time coding practices
+4. Document security considerations
+5. Report vulnerabilities privately
+6. Keep dependencies updated
 
 ---
 
-## Security Contact
+## Contact
 
-- **Email**: security@grifortis.com
-- **PGP Key**: (Coming soon)
+- **Security**: security@grifortis.com
 - **Response Time**: Within 48 hours
 
 ---
 
-## Acknowledgments
-
-We appreciate responsible disclosure and will credit security researchers who help improve this library (unless they prefer to remain anonymous).
-
----
-
 **Last Updated**: 2025-11-27
-
