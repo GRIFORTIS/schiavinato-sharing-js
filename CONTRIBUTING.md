@@ -17,6 +17,16 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 This project follows the Contributor Covenant Code of Conduct. By participating, you agree to uphold this code.
 
+### Zero-Knowledge Protocol
+
+GRIFORTIS operates under a strict zero-knowledge protocol for consultancy and professional services. While this is primarily a business consideration, it informs our technical design:
+
+- **User sovereignty**: Tools must enable users to maintain exclusive control of secrets
+- **No custody assumptions**: Never design features that require trusting third parties with mnemonics
+- **Advisory interfaces**: Guide users through processes they execute themselves
+
+This library implements the core cryptographic operations while maintaining these principles.
+
 ## Getting Started
 
 ### Types of Contributions
