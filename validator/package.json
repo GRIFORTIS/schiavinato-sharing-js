@@ -41,7 +41,8 @@
   },
   "homepage": "https://github.com/GRIFORTIS/schiavinato-sharing-js/tree/main/validator#readme",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "engines": {
     "node": ">=18.0.0"
