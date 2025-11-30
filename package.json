@@ -21,17 +21,23 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "build:browser": "tsup src/index.ts --format iife --global-name SchiavinatoSharing --minify --outDir dist/browser",
+    "build:validator": "node scripts/build-validator.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:manual": "npm run validator",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "typecheck": "tsc --noEmit",
     "prepare": "husky install || true",
     "prepublishOnly": "npm run typecheck && npm run test && npm run build",
+    "publish:validator": "cd validator && npm publish --provenance",
+    "release:all": "npm publish --provenance && npm run publish:validator",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "validator": "npx serve -p 8080 .",
     "verify": "bash scripts/verify-checksums.sh",
-    "verify:latest": "bash scripts/verify-checksums.sh latest"
+    "verify:latest": "bash scripts/verify-checksums.sh latest",
+    "verify:validator": "cd validator && npm run verify"
   },
   "keywords": [
     "bip39",
