@@ -28,6 +28,70 @@ pnpm add @grifortis/schiavinato-sharing
 
 ---
 
+## 🧪 Interactive Validator Tool
+
+**The Schiavinato Sharing Validator is an interactive, browser-based testing and validation interface** that provides a transparent, auditable window into the cryptographic scheme.
+
+### Why Use the Validator?
+
+- ✅ **Zero Installation**: Single HTML file that runs in any modern browser
+- ✅ **Fully Transparent**: Complete source code audit-friendly design
+- ✅ **Visual Learning**: Interactive interface for understanding the scheme
+- ✅ **Testing & Validation**: Verify custom scenarios and edge cases
+- ✅ **Air-Gapped Capable**: Works offline with cached dependencies
+- ✅ **Professional Quality**: Production-ready tool used across all GRIFORTIS tiers
+
+### Quick Access
+
+**NPM Package:**
+```bash
+npm install @grifortis/schiavinato-validator
+```
+
+**Direct Download:**
+- [Latest HTML File](https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/latest) (from GitHub Releases)
+- [Validator Documentation](./validator/README.md)
+
+**Local Testing:**
+```bash
+# Clone this repository and run
+npm run validator
+# Then open http://localhost:8080/validator/JS_Library_Validator.html
+```
+
+### Features
+
+- 🎯 **BIP39 Seed Generation**: Create valid 12 or 24-word mnemonics
+- 🔀 **Share Creation**: Split mnemonics with configurable K-of-N schemes
+- 🔄 **Wallet Recovery**: Reconstruct mnemonics from any K shares
+- ✓ **BIP39 Validation**: Verify checksum integrity
+- 🛠️ **Audit Tools**: Intentionally break checksums to test error handling
+- 📊 **Visual Feedback**: Color-coded share selection and validation status
+
+### Use Cases
+
+The validator serves multiple purposes:
+
+| Audience | Use Case |
+|----------|----------|
+| **Developers** | Test library integration, verify implementations |
+| **Auditors** | Review cryptographic operations, validate security claims |
+| **Educators** | Demonstrate the scheme visually, teach concepts |
+| **Users** | Validate shares before distribution, test recovery |
+| **Researchers** | Experiment with parameters, explore edge cases |
+
+### Security Warning
+
+⚠️ **TESTING TOOL ONLY - NOT FOR PRODUCTION USE**
+
+- Do **NOT** use this tool with real cryptocurrency wallets
+- Do **NOT** use generated seeds for actual funds
+- Intended for development, testing, and auditing only
+
+For complete validator documentation, see **[validator/README.md](./validator/README.md)**.
+
+---
+
 ## 🚀 Quick Start
 
 ### Splitting a Mnemonic
@@ -229,6 +293,34 @@ npm run lint
 - Edge case and error handling tests
 - Cross-validation with test vectors
 - Browser compatibility tests
+
+### Manual Testing with Validator
+
+The library includes an interactive browser-based validator for manual testing:
+
+```bash
+# Start the validator
+npm run validator
+```
+
+Then open http://localhost:8080/validator/JS_Library_Validator.html
+
+The validator provides:
+- Visual interface for creating shares
+- Interactive wallet recovery
+- BIP39 validation testing
+- Audit tools for error handling
+- Support for both word and index formats
+
+Perfect for:
+- Demonstrating the library to stakeholders
+- Manual validation of test vectors
+- Testing edge cases interactively
+- Auditing error handling behavior
+
+See [validator/README.md](validator/README.md) for complete documentation.
+
+**⚠️ Testing Only**: The validator is for development and testing only. Do not use with real cryptocurrency wallets.
 
 ---
 
