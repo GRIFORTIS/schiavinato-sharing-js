@@ -1,7 +1,7 @@
 /**
  * Schiavinato Sharing Checksum Functions
  * 
- * This module implements the per-row and master checksums that are
+ * This module implements the per-row and global checksums that are
  * unique to the Schiavinato Sharing scheme.
  */
 
@@ -46,22 +46,22 @@ export function computeRowChecks(wordIndices: number[]): number[] {
 }
 
 /**
- * Calculates the master checksum by summing all word indices mod 2053.
+ * Calculates the global checksum by summing all word indices mod 2053.
  * 
  * This provides an overall checksum that complements the per-row checksums.
- * During recovery, if row checksums pass but the master checksum fails,
+ * During recovery, if row checksums pass but the global checksum fails,
  * it indicates a more subtle corruption pattern.
  * 
  * @param wordIndices - Array of BIP39 word indices (0-2047)
- * @returns The master checksum in GF(2053)
+ * @returns The global checksum in GF(2053)
  * 
  * @example
  * // For 12-word mnemonic
- * computeMasterCheck([1679, 1470, 216, 41, 1337, 278, 1906, 323, 467, 681, 1843, 125])
+ * computeGlobalChecksum([1679, 1470, 216, 41, 1337, 278, 1906, 323, 467, 681, 1843, 125])
  * // Returns 101
  * // where 101 = (1679 + 1470 + ... + 125) mod 2053
  */
-export function computeMasterCheck(wordIndices: number[]): number {
+export function computeGlobalChecksum(wordIndices: number[]): number {
   return wordIndices.reduce((acc, value) => modAdd(acc, value), 0);
 }
 

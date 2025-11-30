@@ -71,7 +71,7 @@ return diff === 0;
 
 **Used in:**
 - Row checksum validation (`recover.ts` line 143)
-- Master checksum validation (`recover.ts` line 151)
+- Global Checksum validation (`recover.ts` line 151)
 
 ### Memory Wiping
 

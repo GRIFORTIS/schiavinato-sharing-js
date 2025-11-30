@@ -5,7 +5,7 @@
  */
 
 /**
- * Represents a single Shamir share containing word shares, checksums, and master verification.
+ * Represents a single Shamir share containing word shares, checksums, and global checksum verification.
  */
 export interface Share {
   /** The X coordinate for this share (must be unique and non-zero) */
@@ -17,8 +17,8 @@ export interface Share {
   /** Array of row checksum shares (length = number of rows = wordCount / 3) */
   checksumShares: number[];
   
-  /** Master verification number share */
-  masterVerificationShare: number;
+  /** Global Checksum verification number share */
+  globalChecksumVerificationShare: number;
 }
 
 /**
@@ -34,8 +34,8 @@ export interface ShareData {
   /** Array of row checksum shares */
   checksumShares: number[];
   
-  /** Master verification number share */
-  masterVerificationShare: number;
+  /** Global Checksum verification number share */
+  globalChecksumVerificationShare: number;
 }
 
 /**
@@ -50,8 +50,8 @@ export interface RecoveryResult {
     /** Array of row indices that failed checksum validation */
     row: number[];
     
-    /** True if the master checksum failed */
-    master: boolean;
+    /** True if the global checksum failed */
+    global: boolean;
     
     /** True if the BIP39 checksum validation failed */
     bip39: boolean;

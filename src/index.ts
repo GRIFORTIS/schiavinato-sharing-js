@@ -42,7 +42,7 @@ export {
 // Export checksum functions (for verification)
 export { 
   computeRowChecks,
-  computeMasterCheck 
+  computeGlobalChecksum 
 } from './schiavinato/checksums.js';
 
 // Export utility functions

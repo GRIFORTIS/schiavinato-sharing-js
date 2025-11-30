@@ -9,7 +9,7 @@ import { validateMnemonic as validateBip39 } from '@scure/bip39';
 import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
 import { mod } from '../core/field.js';
 import { lagrangeInterpolateAtZero } from '../core/lagrange.js';
-import { computeRowChecks, computeMasterCheck } from './checksums.js';
+import { computeRowChecks, computeGlobalChecksum } from './checksums.js';
 import { 
   ensureSupportedWordCount, 
   normalizeShareValue, 
@@ -32,7 +32,7 @@ import type { ShareData, RecoveryResult, RecoverOptions } from '../types.js';
  * 2. Uses Lagrange interpolation to recover word indices
  * 3. Uses Lagrange interpolation to recover checksums
  * 4. Validates row checksums
- * 5. Validates master checksum
+ * 5. Validates global checksum
  * 6. Validates BIP39 checksum (if previous checks pass)
  * 
  * @param shares - Array of share objects (minimum 2, typically k shares)
@@ -43,8 +43,8 @@ import type { ShareData, RecoveryResult, RecoverOptions } from '../types.js';
  * @example
  * const result = await recoverMnemonic(
  *   [
- *     { shareNumber: 1, wordShares: [...], checksumShares: [...], masterVerificationShare: 1819 },
- *     { shareNumber: 2, wordShares: [...], checksumShares: [...], masterVerificationShare: 1484 }
+ *     { shareNumber: 1, wordShares: [...], checksumShares: [...], globalChecksumVerificationShare: 1819 },
+ *     { shareNumber: 2, wordShares: [...], checksumShares: [...], globalChecksumVerificationShare: 1484 }
  *   ],
  *   12
  * );
@@ -67,7 +67,7 @@ export async function recoverMnemonic(
     mnemonic: null,
     errors: {
       row: [],
-      master: false,
+      global: false,
       bip39: false,
       generic: null
     },
@@ -78,7 +78,7 @@ export async function recoverMnemonic(
   // Declare sensitive variables outside try block for cleanup in finally
   let recoveredWords: number[] = [];
   let recoveredChecks: number[] = [];
-  let recoveredMaster = 0;
+  let recoveredGlobalChecksum = 0;
   
   try {
     // 1. Pre-flight checks for input validity
@@ -126,14 +126,14 @@ export async function recoverMnemonic(
       recoveredChecks.push(lagrangeInterpolateAtZero(points));
     }
     
-    const masterPoints = shares.map((share) => ({
+    const globalChecksumPoints = shares.map((share) => ({
       x: mod(share.shareNumber),
       y: normalizeShareValue(
-        share.masterVerificationShare, 
-        `Master verification (share ${share.shareNumber})`
+        share.globalChecksumVerificationShare, 
+        `Global Checksum verification (share ${share.shareNumber})`
       )
     }));
-    recoveredMaster = lagrangeInterpolateAtZero(masterPoints);
+    recoveredGlobalChecksum = lagrangeInterpolateAtZero(globalChecksumPoints);
     
     // 3. Perform internal Schiavinato validations
     const recomputedChecks = computeRowChecks(recoveredWords);
@@ -145,15 +145,15 @@ export async function recoverMnemonic(
       }
     }
     
-    const recomputedMaster = computeMasterCheck(recoveredWords);
+    const recomputedGlobalChecksum = computeGlobalChecksum(recoveredWords);
     
     // Use constant-time comparison to prevent timing attacks
-    if (!constantTimeEqual(recoveredMaster, recomputedMaster)) {
-      report.errors.master = true;
+    if (!constantTimeEqual(recoveredGlobalChecksum, recomputedGlobalChecksum)) {
+      report.errors.global = true;
     }
     
     // 4. If internal checks pass, proceed to BIP39 validation
-    if (report.errors.row.length === 0 && !report.errors.master) {
+    if (report.errors.row.length === 0 && !report.errors.global) {
       // Validate word indices are in BIP39 range
       for (let i = 0; i < recoveredWords.length; i++) {
         const value = recoveredWords[i];
@@ -184,7 +184,7 @@ export async function recoverMnemonic(
     // 5. Determine success
     report.success = 
       report.errors.row.length === 0 && 
-      !report.errors.master && 
+      !report.errors.global && 
       !report.errors.bip39 && 
       report.mnemonic !== null;
     
@@ -195,7 +195,7 @@ export async function recoverMnemonic(
     // Security: Clean up sensitive data from memory
     secureWipeArray(recoveredWords);
     secureWipeArray(recoveredChecks);
-    recoveredMaster = secureWipeNumber(recoveredMaster);
+    recoveredGlobalChecksum = secureWipeNumber(recoveredGlobalChecksum);
   }
   
   return report;

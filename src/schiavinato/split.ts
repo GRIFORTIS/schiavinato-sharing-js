@@ -9,7 +9,7 @@ import { validateMnemonic as validateBip39 } from '@scure/bip39';
 import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
 import { FIELD_PRIME } from '../core/field.js';
 import { randomPolynomial, evaluatePolynomial } from '../core/polynomial.js';
-import { computeRowChecks, computeMasterCheck } from './checksums.js';
+import { computeRowChecks, computeGlobalChecksum } from './checksums.js';
 import { sanitizeMnemonic, ensureSupportedWordCount } from '../utils/validation.js';
 import { secureWipeArray } from '../utils/security.js';
 import type { Share, SplitOptions } from '../types.js';
@@ -20,7 +20,7 @@ import type { Share, SplitOptions } from '../types.js';
  * Implements the Schiavinato Sharing scheme:
  * 1. Validates the BIP39 mnemonic
  * 2. Converts words to indices (0-2047)
- * 3. Computes row and master checksums
+ * 3. Computes row and global checksums
  * 4. Creates degree-(k-1) polynomials for each secret
  * 5. Evaluates polynomials at x = 1, 2, ..., n
  * 
@@ -39,7 +39,7 @@ import type { Share, SplitOptions } from '../types.js';
  * );
  * 
  * // Returns 3 shares, any 2 can recover the original mnemonic
- * // shares[0] = { shareNumber: 1, wordShares: [...], checksumShares: [...], masterVerificationShare: ... }
+ * // shares[0] = { shareNumber: 1, wordShares: [...], checksumShares: [...], globalChecksumVerificationShare: ... }
  * // shares[1] = { shareNumber: 2, ... }
  * // shares[2] = { shareNumber: 3, ... }
  */
@@ -92,7 +92,7 @@ export async function splitMnemonic(
   
   // Compute checksums
   const checksumSecrets = computeRowChecks(wordIndices);
-  const masterSecret = computeMasterCheck(wordIndices);
+  const globalChecksumSecret = computeGlobalChecksum(wordIndices);
   
   // Create polynomials (degree = k - 1)
   const degree = k - 1;
@@ -105,7 +105,7 @@ export async function splitMnemonic(
     randomPolynomial(secret, degree)
   );
   
-  const masterPolynomial = randomPolynomial(masterSecret, degree);
+  const globalChecksumPolynomial = randomPolynomial(globalChecksumSecret, degree);
   
   // Generate shares by evaluating polynomials at x = 1, 2, ..., n
   const shares: Share[] = [];
@@ -116,7 +116,7 @@ export async function splitMnemonic(
         shareNumber: shareIndex,
         wordShares: [],
         checksumShares: [],
-        masterVerificationShare: 0
+        globalChecksumVerificationShare: 0
       };
       
       // Evaluate word polynomials
@@ -129,8 +129,8 @@ export async function splitMnemonic(
         share.checksumShares.push(evaluatePolynomial(polynomial, shareIndex));
       }
       
-      // Evaluate master polynomial
-      share.masterVerificationShare = evaluatePolynomial(masterPolynomial, shareIndex);
+      // Evaluate global checksum polynomial
+      share.globalChecksumVerificationShare = evaluatePolynomial(globalChecksumPolynomial, shareIndex);
       
       shares.push(share);
     }
@@ -142,7 +142,7 @@ export async function splitMnemonic(
     secureWipeArray(checksumSecrets);
     wordPolynomials.forEach(poly => secureWipeArray(poly));
     checksumPolynomials.forEach(poly => secureWipeArray(poly));
-    secureWipeArray(masterPolynomial);
+    secureWipeArray(globalChecksumPolynomial);
   }
 }
 

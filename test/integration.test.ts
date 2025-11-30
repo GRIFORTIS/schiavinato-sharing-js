@@ -14,19 +14,19 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
       shareNumber: 1,
       wordShares: [82, 1572, 1342, 1044, 198, 849, 272, 679, 142, 811, 1965, 508],
       checksumShares: [154, 555, 751, 1410],
-      masterVerificationShare: 1819
+      globalChecksumVerificationShare: 1819
     },
     2: {
       shareNumber: 2,
       wordShares: [538, 1674, 415, 2047, 1112, 1420, 691, 1035, 1870, 941, 34, 891],
       checksumShares: [1049, 1507, 859, 171],
-      masterVerificationShare: 1484
+      globalChecksumVerificationShare: 1484
     },
     3: {
       shareNumber: 3,
       wordShares: [994, 1776, 1541, 997, 2026, 1991, 1110, 1391, 1545, 1071, 156, 1274],
       checksumShares: [1944, 406, 967, 985],
-      masterVerificationShare: 1149
+      globalChecksumVerificationShare: 1149
     }
   };
 
@@ -42,7 +42,7 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
       expect(result.success).toBe(true);
       expect(result.mnemonic).toBe(testMnemonic);
       expect(result.errors.row).toHaveLength(0);
-      expect(result.errors.master).toBe(false);
+      expect(result.errors.global).toBe(false);
       expect(result.errors.bip39).toBe(false);
     });
 
@@ -129,9 +129,9 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
       );
       
       expect(result.success).toBe(false);
-      // Should detect error (either row checksum, master, or BIP39)
+      // Should detect error (either row checksum, global, or BIP39)
       const hasError = result.errors.row.length > 0 || 
-                      result.errors.master || 
+                      result.errors.global || 
                       result.errors.bip39;
       expect(hasError).toBe(true);
     });

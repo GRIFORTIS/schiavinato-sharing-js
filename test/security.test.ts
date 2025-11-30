@@ -220,22 +220,22 @@ describe('Security Utilities', () => {
       // Simulate a recovery scenario
       const sensitiveWords = [1679, 456, 892, 1234, 567, 890, 1111, 2222, 3333, 4444, 5555, 6666];
       const sensitiveChecks = [1500, 2000, 2500, 3000];
-      let sensitiveMaster = 12345;
+      let sensitiveGlobalChecksum = 12345;
 
       // Verify data exists
       expect(sensitiveWords[0]).toBe(1679);
       expect(sensitiveChecks[0]).toBe(1500);
-      expect(sensitiveMaster).toBe(12345);
+      expect(sensitiveGlobalChecksum).toBe(12345);
 
       // Cleanup
       secureWipeArray(sensitiveWords);
       secureWipeArray(sensitiveChecks);
-      sensitiveMaster = secureWipeNumber(sensitiveMaster);
+      sensitiveGlobalChecksum = secureWipeNumber(sensitiveGlobalChecksum);
 
       // Verify data is wiped
       expect(sensitiveWords).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
       expect(sensitiveChecks).toEqual([0, 0, 0, 0]);
-      expect(sensitiveMaster).toBe(0);
+      expect(sensitiveGlobalChecksum).toBe(0);
     });
   });
 
@@ -252,13 +252,13 @@ describe('Security Utilities', () => {
       expect(constantTimeEqual(validChecksum, recomputedInvalid)).toBe(false);
     });
 
-    it('should validate master checksum in constant time', () => {
-      const recoveredMaster = 12345;
+    it('should validate global checksum in constant time', () => {
+      const recoveredGlobalChecksum = 12345;
       const recomputedValid = 12345;
       const recomputedInvalid = 12346;
 
-      expect(constantTimeEqual(recoveredMaster, recomputedValid)).toBe(true);
-      expect(constantTimeEqual(recoveredMaster, recomputedInvalid)).toBe(false);
+      expect(constantTimeEqual(recoveredGlobalChecksum, recomputedValid)).toBe(true);
+      expect(constantTimeEqual(recoveredGlobalChecksum, recomputedInvalid)).toBe(false);
     });
 
     it('should validate BIP39 checksums in constant time', () => {

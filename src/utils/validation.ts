@@ -90,7 +90,7 @@ export function normalizeShareValue(value: number, label: string): number {
  * - Share numbers are valid integers in range [1, 2052]
  * - Each share has the correct number of word values
  * - Each share has the correct number of checksum values
- * - Each share has a master verification value
+ * - Each share has a global checksum verification value
  * 
  * @param shares - Array of shares to validate
  * @param wordCount - Expected number of words (12 or 24)
@@ -98,8 +98,8 @@ export function normalizeShareValue(value: number, label: string): number {
  * 
  * @example
  * validateSharesForRecovery([
- *   { shareNumber: 1, wordShares: [...], checksumShares: [...], masterVerificationShare: 123 },
- *   { shareNumber: 2, wordShares: [...], checksumShares: [...], masterVerificationShare: 456 }
+ *   { shareNumber: 1, wordShares: [...], checksumShares: [...], globalChecksumVerificationShare: 123 },
+ *   { shareNumber: 2, wordShares: [...], checksumShares: [...], globalChecksumVerificationShare: 456 }
  * ], 12);
  */
 export function validateSharesForRecovery(shares: ShareData[], wordCount: number): void {
@@ -126,9 +126,9 @@ export function validateSharesForRecovery(shares: ShareData[], wordCount: number
       );
     }
     
-    if (!Number.isInteger(share.masterVerificationShare)) {
+    if (!Number.isInteger(share.globalChecksumVerificationShare)) {
       throw new Error(
-        `Share #${share.shareNumber} is missing a master verification share.`
+        `Share #${share.shareNumber} is missing a global checksum verification share.`
       );
     }
   });

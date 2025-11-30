@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeRowChecks, computeMasterCheck } from '../src/schiavinato/checksums';
+import { computeRowChecks, computeGlobalChecksum } from '../src/schiavinato/checksums';
 
 describe('Schiavinato Checksums', () => {
   // Test vector from TEST_VECTORS.md
@@ -42,39 +42,39 @@ describe('Schiavinato Checksums', () => {
     });
   });
 
-  describe('computeMasterCheck', () => {
-    it('should compute master checksum for test vector', () => {
-      const master = computeMasterCheck(testWordIndices);
+  describe('computeGlobalChecksum', () => {
+    it('should compute global checksum for test vector', () => {
+      const globalChecksum = computeGlobalChecksum(testWordIndices);
       
-      // From TEST_VECTORS.md: M = 101
-      expect(master).toBe(101);
+      // From TEST_VECTORS.md: G = 101
+      expect(globalChecksum).toBe(101);
     });
 
     it('should handle empty array', () => {
-      const master = computeMasterCheck([]);
-      expect(master).toBe(0);
+      const globalChecksum = computeGlobalChecksum([]);
+      expect(globalChecksum).toBe(0);
     });
 
     it('should handle single value', () => {
-      const master = computeMasterCheck([100]);
-      expect(master).toBe(100);
+      const globalChecksum = computeGlobalChecksum([100]);
+      expect(globalChecksum).toBe(100);
     });
 
     it('should handle values that sum over field prime', () => {
-      const master = computeMasterCheck([2000, 2000, 2000]);
+      const globalChecksum = computeGlobalChecksum([2000, 2000, 2000]);
       // 6000 mod 2053 = 1894
-      expect(master).toBe(1894);
+      expect(globalChecksum).toBe(1894);
     });
   });
 
   describe('checksum integration', () => {
-    it('should maintain relationship between row and master checks', () => {
+    it('should maintain relationship between row and global checks', () => {
       const rowChecks = computeRowChecks(testWordIndices);
-      const masterCheck = computeMasterCheck(testWordIndices);
+      const globalCheck = computeGlobalChecksum(testWordIndices);
       
-      // Master check should equal sum of row checks (in GF(2053))
+      // Global check should equal sum of row checks (in GF(2053))
       const sumOfRows = rowChecks.reduce((acc, val) => (acc + val) % 2053, 0);
-      expect(sumOfRows).toBe(masterCheck);
+      expect(sumOfRows).toBe(globalCheck);
     });
   });
 });
