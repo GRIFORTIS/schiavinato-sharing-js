@@ -40,6 +40,9 @@ jobs:
     - name: Build browser bundle
       run: npm run build:browser
     
+    - name: Build validator
+      run: npm run build:validator
+    
     - name: Generate SHA256 checksums
       run: |
         cd dist
@@ -123,6 +126,8 @@ jobs:
           CHECKSUMS.json
           grifortis-schiavinato-sharing-*.tar.gz
           grifortis-schiavinato-sharing-*.tar.gz.sha256
+          validator/dist/schiavinato-validator-*.html
+          validator/dist/schiavinato-validator-*.html.sha256
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     

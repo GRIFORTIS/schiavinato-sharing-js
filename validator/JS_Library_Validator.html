@@ -1,0 +1,935 @@
+
+<html lang="en">
+<!-- 
+    Schiavinato Sharing Validator v0.2.0
+    
+    This version number is automatically synchronized with the main library.
+    Do not manually edit - use 'npm run build:validator' to update.
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schiavinato Sharing - JS Library Validator</title>
+    
+    <style>
+        /* ==========================================================================
+        GRIFORTIS - DESIGN SYSTEM (v0.2.0)
+        ==========================================================================
+        */
+
+        :root {
+            /* --- 1. BRAND COLORS (FIXED) --- */
+            --brand-navy: #0B1019;
+            --brand-titanium: #E3E4E6;
+            --cyber-gold: #F4B400;
+            --error-red: #FF4444;
+            --success-green: #00E676;
+            --warning-orange: #FF9800;
+
+            /* --- 2. DARK THEME (DEFAULT) --- */
+            --bg-main: var(--brand-navy);
+            --bg-card: #151E2E;
+            --text-main: var(--brand-titanium);
+            --text-muted: #8A8D91;
+            --border-color: #2C3E50;
+            --input-bg: rgba(0,0,0,0.3);
+            --input-text: #fff;
+            --shadow-color: rgba(0,0,0,0.5);
+            
+            --btn-disabled-bg: #2C3E50;
+            --btn-disabled-text: #586376;
+            
+            --alert-error-bg: #3b1f1f;
+            --alert-error-border: #7a2c2c;
+            --alert-error-text: #fecaca;
+            
+            --alert-success-bg: #113a29;
+            --alert-success-border: #1a6445;
+            --alert-success-text: #bbf7d0;
+            
+            --alert-warning-bg: #3d2e1f;
+            --alert-warning-border: #8a5a2a;
+            --alert-warning-text: #ffd699;
+            
+            color-scheme: dark;
+        }
+
+        /* --- 3. BASIC RESET AND TRANSITIONS --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* --- 4. TYPOGRAPHY --- */
+        h1, h2, h3, h4 {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5em;
+        }
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.25rem; font-weight: 700; margin-top: 1.5em; }
+        h4 { font-size: 1rem; font-weight: 700; margin-top: 1em; }
+        p { font-size: 1rem; margin-bottom: 1em; }
+        code, .mono { 
+            font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; 
+            background: var(--input-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        /* --- 5. LAYOUT --- */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px;
+            background-color: var(--bg-main);
+        }
+        .header h1 { 
+            font-size: 1.5rem; margin: 0; 
+        }
+        .component-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            margin-bottom: 20px;
+        }
+        
+        /* --- 6. FORMS --- */
+        .form-group { margin-bottom: 1rem; }
+        label { 
+            display: block; font-size: 0.9rem; 
+            font-weight: 600; 
+            color: var(--text-muted); margin-bottom: 8px; 
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--input-text);
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--cyber-gold);
+            box-shadow: 0 0 0 2px rgba(244, 180, 0, 0.3);
+        }
+        
+        /* Custom checkbox */
+        .choice-group { display: flex; align-items: center; margin-bottom: 10px; }
+        .choice-group input[type="checkbox"] { opacity: 0; width: 0; height: 0; position: absolute; }
+        .choice-group label {
+            display: flex; align-items: center; cursor: pointer;
+            font-weight: 400;
+            color: var(--text-main);
+            margin: 0;
+        }
+        .choice-group label::before {
+            content: '';
+            width: 24px; height: 24px;
+            border: 2px solid var(--border-color);
+            background: var(--input-bg);
+            margin-right: 12px;
+            transition: all 0.2s;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        input[type="checkbox"]:checked + label::before {
+            background-color: var(--cyber-gold);
+            border-color: var(--cyber-gold);
+            content: '✓';
+            color: #000;
+            font-weight: 900;
+            text-align: center;
+            line-height: 20px;
+            font-size: 16px;
+        }
+        
+        /* --- 7. BUTTONS --- */
+        .btn {
+            width: auto;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background-color: transparent;
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-weight: 800;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:disabled {
+            background-color: var(--btn-disabled-bg);
+            color: var(--btn-disabled-text);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            pointer-events: none;
+        }
+        .btn-secondary {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:not(:disabled):hover {
+            border-color: var(--cyber-gold);
+            background-color: rgba(244, 180, 0, 0.1);
+        }
+        .btn-primary {
+            border: 1px solid var(--cyber-gold);
+            background-color: var(--cyber-gold);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(244, 180, 0, 0.2);
+        }
+        .btn-primary:not(:disabled):hover {
+            filter: brightness(1.1);
+            box-shadow: 0 6px 20px rgba(244, 180, 0, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-danger {
+            border: 1px solid var(--error-red);
+            background-color: var(--error-red);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.2);
+        }
+        .btn-danger:not(:disabled):hover {
+            filter: brightness(1.1);
+            box-shadow: 0 6px 20px rgba(255, 68, 68, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        /* --- 8. ALERTS --- */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .alert-success {
+            background-color: var(--alert-success-bg);
+            border-color: var(--alert-success-border);
+            color: var(--alert-success-text);
+        }
+        .alert-error {
+            background-color: var(--alert-error-bg);
+            border-color: var(--alert-error-border);
+            color: var(--alert-error-text);
+        }
+        .alert-warning {
+            background-color: var(--alert-warning-bg);
+            border-color: var(--alert-warning-border);
+            color: var(--alert-warning-text);
+        }
+        
+        /* --- 9. MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+        }
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        /* --- 10. FOOTER --- */
+        .footer {
+            width: 100%;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            background-color: var(--bg-main);
+            margin-top: 40px;
+        }
+
+        /* --- 11. CUSTOM STYLES FOR VALIDATOR --- */
+        .grid-container {
+            display: grid;
+            gap: 20px;
+        }
+        .grid-2col {
+            grid-template-columns: 1fr 1fr;
+        }
+        .grid-3col {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .seed-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .button-with-dropdown {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .button-with-dropdown select {
+            width: 100%;
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+        .share-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: var(--input-bg);
+            transition: all 0.2s ease;
+        }
+        .share-container.selected {
+            border-color: var(--cyber-gold);
+            background: rgba(244, 180, 0, 0.1);
+        }
+        .share-container.error {
+            border-color: var(--error-red);
+            background: rgba(255, 68, 68, 0.1);
+        }
+        .share-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap; /* Allow wrapping for smaller screens */
+            gap: 10px;
+        }
+        .share-fields {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr;
+            gap: 15px;
+            align-items: stretch;
+        }
+        .share-labels {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .share-labels p {
+            margin: 0;
+            line-height: 1.1; /* Adjust for alignment */
+        }
+        .share-fields textarea {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 0.85rem;
+            padding: 10px;
+            height: auto;
+            resize: none;
+        }
+        .share-audit-controls {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px dashed var(--warning-orange);
+            border-radius: 8px;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        .share-audit-controls p {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--warning-orange);
+            line-height: 1.4;
+        }
+        
+        .config-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: flex-end;
+        }
+        
+        .button-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .button-row-space-between {
+            justify-content: space-between;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <h1>Schiavinato Sharing - JS Library Validator</h1>
+    </header>
+    
+    <div class="container">
+        <!-- LANDING PAGE WITH DISCLAIMER -->
+        <section id="page-landing" class="component-card">
+            <h2>⚠️ Warning & Liability Disclaimer</h2>
+            
+            <div class="alert alert-warning">
+                <strong>TESTING TOOL ONLY - NOT FOR PRODUCTION USE</strong>
+            </div>
+            
+            <p>This tool is designed to test and validate the Schiavinato Sharing JavaScript library. It is <strong>NOT</strong> intended for use with real cryptocurrency wallets or sensitive data.</p>
+            
+            <ul style="padding-left: 25px; margin-top: 1em; margin-bottom: 2em;">
+                <li style="margin-bottom: 1em;"><strong>Testing Only:</strong> Do not use generated seeds for real cryptocurrency wallets.</li>
+                <li style="margin-bottom: 1em;"><strong>No Security Guarantees:</strong> This tool imports the library via ES modules and may load external code. Do not use in air-gapped environments for real funds.</li>
+                <li style="margin-bottom: 1em;"><strong>You Are Responsible:</strong> GRIFORTIS and its contributors are not responsible for any loss of funds or damages resulting from using this software.</li>
+            </ul>
+            
+            <div class="choice-group" style="margin-bottom: 1.5em;">
+                <input type="checkbox" id="disclaimer-checkbox">
+                <label for="disclaimer-checkbox">I understand this is a testing tool only and I will not use it for real cryptocurrency wallets.</label>
+            </div>
+            
+            <button id="btn-start" class="btn btn-primary" disabled>Start Testing</button>
+        </section>
+
+        <!-- MAIN CONTENT (Hidden initially) -->
+        <main id="main-content" style="display: none;">
+            
+            <!-- 1. CONFIGURE -->
+            <section class="component-card">
+                <h2>Configure Shares - For Create Shares and Recover Wallet</h2>
+                <div class="config-row">
+                    <div class="form-group">
+                        <label for="threshold-k">Threshold (K)</label>
+                        <input type="number" id="threshold-k" min="2" max="5" value="2">
+                        <small style="color: var(--text-muted);">Minimum shares required</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="total-n">Number of Shares (N)</label>
+                        <input type="number" id="total-n" min="2" max="16" value="3">
+                        <small style="color: var(--text-muted);">Total shares to generate (must be ≥ K)</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NAVIGATION -->
+            <section class="component-card" id="navigation">
+                <h2>Navigation</h2>
+                <div class="button-row" style="justify-content: flex-start; gap: 10px;">
+                    <a href="#shares-section" class="btn btn-secondary">Go to Shares</a>
+                    <a href="#recovered-wallet" class="btn btn-secondary">Go to Recovered Wallet</a>
+                    <button class="btn btn-danger" onclick="location.reload(true)">Reset the Page</button>
+                </div>
+            </section>
+
+            <!-- 2. CREATE SHARES -->
+            <section class="component-card">
+                <h2>Create Shares</h2>
+                <div class="grid-container grid-2col">
+                    <!-- Left: Input Field -->
+                    <div class="form-group">
+                        <label for="seed-input">Enter/Create BIP39 Seed</label>
+                        <textarea id="seed-input" rows="12" placeholder="Enter 12, 15, 18, 21 or 24 words/IDs..."></textarea>
+                    </div>
+                    
+                    <!-- Right: Button Grid -->
+                    <div class="form-group">
+                        <label>Generate Seed</label>
+                        <div class="seed-buttons-grid">
+                            <button class="btn btn-primary" onclick="generateSeed(24, 'words')">New 24 Words (Valid)</button>
+                            <button class="btn btn-primary" onclick="generateSeed(12, 'words')">New 12 Words (Valid)</button>
+                            <button class="btn btn-primary" onclick="generateSeed(24, 'ids')">New 24 IDs (Valid)</button>
+                            <button class="btn btn-primary" onclick="generateSeed(12, 'ids')">New 12 IDs (Valid)</button>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 10px;">All generators output valid BIP39 seeds only.</p>
+                    </div>
+                </div>
+                
+                <div class="button-row">
+                    <button class="btn btn-secondary" onclick="clearCreateFields()">Clean Fields</button>
+                    <button class="btn btn-primary" onclick="createShares()">Create Shares</button>
+                </div>
+            </section>
+
+            <!-- 3. VIEW & SELECT SHARES -->
+            <section class="component-card" id="shares-section">
+                <h2>Schiavinato Shares</h2>
+                <div id="shares-container" class="grid-container">
+                    <!-- Shares will be dynamically generated here -->
+                </div>
+                
+                <div class="button-row button-row-space-between">
+                    <button class="btn btn-secondary" onclick="clearSharesFields()">Clean Fields</button>
+                    <button class="btn btn-primary" onclick="recoverWallet()">Recover Wallet</button>
+                </div>
+            </section>
+
+            <!-- 4. RECOVERED WALLET -->
+            <section class="component-card" id="recovered-wallet">
+                <h2>Recovered Wallet</h2>
+                <div class="grid-container grid-2col">
+                    <div class="form-group">
+                        <label for="recovered-output">Recovered Wallet</label>
+                        <textarea id="recovered-output" rows="12" placeholder="Recovered wallet will appear here..."></textarea>
+                        <div id="validation-status" style="margin-top: 10px;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                         <label>Actions</label>
+                        <button class="btn btn-primary" onclick="validateRecovered()" style="width: 100%; margin-bottom: 10px;">validate BIP39 checksum</button>
+                        <button class="btn btn-secondary" onclick="clearRecoveredFields()" style="width: 100%;">Clean Fields</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- FOOTER -->
+        <footer class="footer">
+            <!-- VERSION: Auto-updated by build:validator script - do not manually edit -->
+            <p><strong>GRIFORTIS Schiavinato Sharing - JS Library Validator v0.2.0</strong><br>
+            <span style="color: var(--text-muted);">MIT License · Testing Tool · Not for Production Use</span></p>
+        </footer>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modal-title" style="margin-top: 0;">Message</h3>
+            <p id="modal-text">Text</p>
+            <div class="modal-buttons">
+                <button id="modal-ok" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <!-- Import Map: Tells the browser where to find npm packages -->
+    <script type="importmap">
+    {
+      "imports": {
+        "@scure/bip39": "https://esm.sh/@scure/bip39@1.2.1",
+        "@scure/bip39/wordlists/english": "https://esm.sh/@scure/bip39@1.2.1/wordlists/english",
+        "@noble/hashes/sha256": "https://esm.sh/@noble/hashes@1.3.3/sha256",
+        "@noble/hashes/sha512": "https://esm.sh/@noble/hashes@1.3.3/sha512",
+        "@noble/hashes/pbkdf2": "https://esm.sh/@noble/hashes@1.3.3/pbkdf2",
+        "@noble/hashes/utils": "https://esm.sh/@noble/hashes@1.3.3/utils"
+      }
+    }
+    </script>
+    
+    <script type="module">
+        // MODULE LOADER
+        try {
+            console.log('🔄 Loading Schiavinato Sharing library (ESM build)...');
+            const SS = await import('../dist/index.mjs');
+            window.SchiavinatoSharing = SS;
+            console.log('✅ Schiavinato Sharing library loaded successfully');
+            console.log('📌 Library version:', SS.VERSION);
+            window.dispatchEvent(new CustomEvent('schiavinato-library-ready'));
+            console.log('🎉 Library ready for testing');
+        } catch (error) {
+            console.error('❌ Failed to load library:', error);
+            alert(`Failed to load the Schiavinato Sharing library!\n\nError: ${error.message}`);
+        }
+    </script>
+    
+    <script>
+        // --- GLOBAL STATE & INITIALIZATION ---
+        let currentK = 2;
+        let currentN = 3;
+        let currentShares = [];
+        let bip39Wordlist = [];
+        
+        window.addEventListener('schiavinato-library-ready', () => {
+            const SS = window.SchiavinatoSharing;
+            bip39Wordlist = Array.isArray(SS?.englishWordlist) ? SS.englishWordlist : [];
+            console.log('📚 Loaded BIP39 wordlist entries:', bip39Wordlist.length);
+        });
+        
+        document.getElementById('disclaimer-checkbox').addEventListener('change', (e) => {
+            document.getElementById('btn-start').disabled = !e.target.checked;
+        });
+        
+        document.getElementById('btn-start').addEventListener('click', () => {
+            document.getElementById('page-landing').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            initializeShares();
+        });
+        
+        document.getElementById('threshold-k').addEventListener('change', (e) => {
+            currentK = parseInt(e.target.value);
+            if (currentN < currentK) {
+                currentN = currentK;
+                document.getElementById('total-n').value = currentN;
+            }
+            initializeShares();
+        });
+        
+        document.getElementById('total-n').addEventListener('change', (e) => {
+            currentN = parseInt(e.target.value);
+            if (currentN < currentK) {
+                showModal('Invalid Configuration', `Number of shares (N=${currentN}) must be >= threshold (K=${currentK})`);
+                currentN = currentK;
+                e.target.value = currentN;
+            }
+            initializeShares();
+        });
+
+        // --- UI DRAWING FUNCTIONS ---
+        function generateShareLabelsHTML() {
+            let labelsHTML = '<div class="share-labels">';
+            labelsHTML += '<p>Global Checksum (G)</p>';
+            for (let i = 1; i <= 24; i++) {
+                labelsHTML += `<p>Word ${i}</p>`;
+                if (i % 3 === 0) {
+                    labelsHTML += `<p>Checksum (C${i/3})</p>`;
+                }
+            }
+            labelsHTML += '</div>';
+            return labelsHTML;
+        }
+
+        function initializeShares() {
+            const container = document.getElementById('shares-container');
+            container.innerHTML = '';
+            currentShares = [];
+            const labelsHTML = generateShareLabelsHTML();
+            
+            for (let i = 1; i <= currentN; i++) {
+                const shareDiv = document.createElement('div');
+                shareDiv.className = 'share-container';
+                shareDiv.id = `share-${i}`;
+                
+                const checked = i <= currentK ? 'checked' : '';
+                if (checked) shareDiv.classList.add('selected');
+                
+                const auditorButtonHTML = i === 1 ? `
+                    <div class="share-audit-controls" style="border:none; padding: 0; background: none; margin: 0;">
+                        <button class="btn btn-danger" onclick="breakShareBip39()" style="padding: 8px 12px; font-size: 0.8rem;">Break BIP39 on Share</button>
+                    </div>
+                ` : '';
+
+                shareDiv.innerHTML = `
+                    <div class="share-header">
+                        <h4>Share ${i} of ${currentN}</h4>
+                        ${auditorButtonHTML}
+                        <div class="choice-group" style="margin-left: auto;">
+                            <input type="checkbox" id="use-share-${i}" ${checked} onchange="updateShareSelection(${i})">
+                            <label for="use-share-${i}">Use for Recovery</label>
+                        </div>
+                    </div>
+                    <div class="share-fields">
+                        ${labelsHTML}
+                        <textarea id="share-${i}-words" rows="33" placeholder="Words will appear here..."></textarea>
+                        <textarea id="share-${i}-ids" rows="33" placeholder="IDs will appear here..."></textarea>
+                    </div>
+                    <button class="btn btn-secondary" onclick="copyShare(${i})" style="margin-top: 10px; width: 100%;">Copy Share 'Word - ID' format to Clipboard</button>
+                `;
+                
+                container.appendChild(shareDiv);
+            }
+        }
+        
+        function updateShareSelection(shareNum) {
+            const checkbox = document.getElementById(`use-share-${shareNum}`);
+            const shareDiv = document.getElementById(`share-${shareNum}`);
+            shareDiv.classList.toggle('selected', checkbox.checked);
+            
+            const selectedCount = document.querySelectorAll('#shares-container input[type="checkbox"]:checked').length;
+            
+            document.querySelectorAll('.share-container').forEach(div => {
+                const id = parseInt(div.id.split('-')[1]);
+                const cb = document.getElementById(`use-share-${id}`);
+                if (cb.checked) {
+                    div.classList.toggle('error', selectedCount > currentK);
+                } else {
+                    div.classList.remove('error');
+                }
+            });
+        }
+
+        // --- CORE LOGIC FUNCTIONS ---
+        async function generateSeed(wordCount, format) {
+            try {
+                const SS = window.SchiavinatoSharing;
+                if (!SS) { return showModal('Error', 'Library not loaded.'); }
+                
+                const mnemonic = SS.generateValidMnemonic(wordCount);
+                const indices = SS.mnemonicToIndices(mnemonic);
+                
+                document.getElementById('seed-input').value = (format === 'words') 
+                    ? mnemonic.split(' ').join('\n') 
+                    : indices.join('\n');
+                
+            } catch (error) {
+                showModal('Error', `Failed to generate seed: ${error.message}`);
+            }
+        }
+        
+        async function createShares() {
+            try {
+                const SS = window.SchiavinatoSharing;
+                if (!SS) { return showModal('Error', 'Library not loaded.'); }
+                if (!bip39Wordlist.length && Array.isArray(SS?.englishWordlist)) {
+                    bip39Wordlist = SS.englishWordlist;
+                }
+                
+                const seedInput = document.getElementById('seed-input').value.trim();
+                if (!seedInput) { return showModal('Error', 'Please enter a BIP39 seed first'); }
+                
+                const parsed = SS.parseInput(seedInput);
+                if (parsed.words.length !== 12 && parsed.words.length !== 24) {
+                    return showModal('Error', `Invalid word count: ${parsed.words.length}. Must be 12 or 24.`);
+                }
+                
+                const mnemonic = parsed.words.join(' ');
+                const shares = await SS.splitMnemonic(mnemonic, currentK, currentN);
+                currentShares = shares;
+                
+                for (let i = 0; i < shares.length; i++) {
+                    const share = shares[i];
+                    const shareNum = i + 1;
+                    
+                    const wordsArray = [];
+                    const idsArray = [];
+                    
+                    wordsArray.push(getWordOrId(share.globalChecksumVerificationShare));
+                    idsArray.push(share.globalChecksumVerificationShare);
+                    
+                    for (let w = 0; w < share.wordShares.length; w++) {
+                        wordsArray.push(getWordOrId(share.wordShares[w]));
+                        idsArray.push(share.wordShares[w]);
+                        
+                        if ((w + 1) % 3 === 0) {
+                            const checksumIdx = Math.floor(w / 3);
+                            wordsArray.push(getWordOrId(share.checksumShares[checksumIdx]));
+                            idsArray.push(share.checksumShares[checksumIdx]);
+                        }
+                    }
+                    
+                    document.getElementById(`share-${shareNum}-words`).value = wordsArray.join('\n');
+                    document.getElementById(`share-${shareNum}-ids`).value = idsArray.join('\n');
+                }
+                
+            } catch (error) {
+                showModal('Error', `Failed to create shares: ${error.message}`);
+                console.error(error);
+            }
+        }
+        
+        function getWordOrId(value) {
+            const isBip39Index = Number.isInteger(value) && value >= 0 && value < 2048;
+            if (isBip39Index && bip39Wordlist[value]) {
+                return bip39Wordlist[value];
+            }
+            return `${value}`;
+        }
+
+        function breakShareBip39() {
+            const idsField = document.getElementById('share-1-ids');
+            const wordsField = document.getElementById('share-1-words');
+
+            if (!idsField || !wordsField) {
+                return showModal('Auditor Tool', 'Generate shares before attempting to break BIP39.');
+            }
+
+            const idsText = idsField.value.trim();
+            if (!idsText) {
+                return showModal('Auditor Tool', 'Share 1 is empty. Create shares first.');
+            }
+
+            const ids = idsText.split(/[\s,\n]+/).filter(Boolean).map((value) => parseInt(value, 10));
+            if (ids.some((value) => Number.isNaN(value))) {
+                return showModal('Auditor Tool', 'Share 1 contains non-numeric values. Unable to mutate.');
+            }
+
+            if (ids.length < 5) {
+                return showModal('Auditor Tool', 'Share 1 does not have enough entries to mutate.');
+            }
+
+            const positionsToMutate = new Set([0, 1, 4]); // Global, Word 1, Checksum C1
+            const mutatedIds = ids.map((value, index) => positionsToMutate.has(index) ? mod2053(value + 1) : value);
+
+            idsField.value = mutatedIds.join('\n');
+            wordsField.value = mutatedIds.map((value) => getWordOrId(value)).join('\n');
+
+            // showModal('Auditor Mutation Applied', 'Share 1 was modified to break the BIP39 checksum. Use for auditing only.');
+        }
+
+        function mod2053(value) {
+            const result = value % 2053;
+            return result >= 0 ? result : result + 2053;
+        }
+        
+        async function recoverWallet() {
+            try {
+                const SS = window.SchiavinatoSharing;
+                if (!SS) { return showModal('Error', 'Library not loaded.'); }
+
+                const selectedShareNums = Array.from(document.querySelectorAll('#shares-container input:checked'))
+                    .map(cb => parseInt(cb.id.split('-')[2]));
+
+                if (selectedShareNums.length !== currentK) {
+                    return showModal('Error', `Please select exactly ${currentK} shares. Selected: ${selectedShareNums.length}`);
+                }
+                
+                const sharesToRecover = [];
+                for (const shareNum of selectedShareNums) {
+                    const idsText = document.getElementById(`share-${shareNum}-ids`).value.trim();
+                    if (!idsText) { return showModal('Error', `Share ${shareNum} is empty.`); }
+                    
+                    const ids = idsText.split(/[\s,\n]+/).map(id => parseInt(id)).filter(id => !isNaN(id));
+                    
+                    const globalChecksumVerificationShare = ids.shift();
+                    const wordShares = [];
+                    const checksumShares = [];
+                    
+                    for (let i = 0; i < ids.length; i++) {
+                        if ((i + 1) % 4 === 0) {
+                            checksumShares.push(ids[i]);
+                        } else {
+                            wordShares.push(ids[i]);
+                        }
+                    }
+                    
+                    sharesToRecover.push({ shareNumber: shareNum, wordShares, checksumShares, globalChecksumVerificationShare });
+                }
+                
+                const wordCount = sharesToRecover[0].wordShares.length;
+                const result = await SS.recoverMnemonic(sharesToRecover, wordCount);
+                
+                const recoveredOutput = document.getElementById('recovered-output');
+                const validationStatus = document.getElementById('validation-status');
+
+                if (result.success) {
+                    recoveredOutput.value = result.mnemonic.split(' ').join('\n');
+                    validationStatus.innerHTML = '<div class="alert alert-success">✓ Recovery successful! BIP39 checksum VALID</div>';
+                } else {
+                    let errorMsg = 'Recovery failed:\n' + (result.errors.row.length > 0 ? `- Row checksum errors in rows: ${result.errors.row.join(', ')}\n` : '') + (result.errors.global ? '- Global verification failed\n' : '') + (result.errors.bip39 ? '- BIP39 checksum invalid\n' : '') + (result.errors.generic ? `- ${result.errors.generic}\n` : '');
+                    
+                    if (result.mnemonic) {
+                        recoveredOutput.value = result.mnemonic.split(' ').join('\n');
+                        validationStatus.innerHTML = '<div class="alert alert-error">✗ BIP39 checksum INVALID</div>';
+                    }
+                    // Only show modal for more severe errors
+                    if (result.errors.row.length > 0 || result.errors.global || result.errors.generic) {
+                        showModal('Recovery Errors', errorMsg);
+                    }
+                }
+                
+            } catch (error) {
+                showModal('Error', `Failed to recover wallet: ${error.message}`);
+                console.error(error);
+            }
+        }
+        
+        async function validateRecovered() {
+            try {
+                const SS = window.SchiavinatoSharing;
+                if (!SS) { return showModal('Error', 'Library not loaded.'); }
+                
+                const recovered = document.getElementById('recovered-output').value.trim();
+                if (!recovered) { return showModal('Error', 'No recovered wallet to validate'); }
+                
+                const mnemonic = SS.parseInput(recovered).words.join(' ');
+                const isValid = SS.validateBip39Mnemonic(mnemonic);
+                
+                document.getElementById('validation-status').innerHTML = isValid
+                    ? '<div class="alert alert-success">✓ BIP39 checksum VALID</div>'
+                    : '<div class="alert alert-error">✗ BIP39 checksum INVALID</div>';
+                    
+            } catch (error) {
+                showModal('Error', `Validation failed: ${error.message}`);
+            }
+        }
+        
+        // --- UTILITY FUNCTIONS ---
+        function copyShare(shareNum) {
+            const wordsText = document.getElementById(`share-${shareNum}-words`).value;
+            const idsText = document.getElementById(`share-${shareNum}-ids`).value;
+            if (!wordsText || !idsText) { return showModal('Error', 'Share is empty'); }
+            
+            const formatted = wordsText.split('\n').map((word, i) => `${word} - ${idsText.split('\n')[i]}`).join('\n');
+            navigator.clipboard.writeText(formatted)
+                .then(() => showModal('Success', 'Share copied to clipboard!'))
+                .catch(() => showModal('Error', 'Failed to copy to clipboard'));
+        }
+        
+        function clearCreateFields() {
+            document.getElementById('seed-input').value = '';
+        }
+        
+        function clearSharesFields() {
+            initializeShares();
+        }
+        
+        function clearRecoveredFields() {
+            document.getElementById('recovered-output').value = '';
+            document.getElementById('validation-status').innerHTML = '';
+        }
+        
+        function showModal(title, text) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-text').textContent = text;
+            document.getElementById('modal').style.display = 'flex';
+        }
+        
+        document.getElementById('modal-ok').addEventListener('click', () => {
+            document.getElementById('modal').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
+

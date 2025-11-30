@@ -31,7 +31,15 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish to NPM
+      - name: Build validator
+        run: npm run build:validator
+
+      - name: Publish main library to NPM
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish validator to NPM
+        run: cd validator && npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

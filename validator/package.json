@@ -1,0 +1,50 @@
+{
+  "name": "@grifortis/schiavinato-validator",
+  "version": "0.2.0",
+  "description": "Interactive browser-based validator and testing tool for Schiavinato Sharing - human-executable secret sharing for BIP39 mnemonics",
+  "main": "JS_Library_Validator.html",
+  "files": [
+    "JS_Library_Validator.html",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "echo \"Validator is a standalone HTML tool. Open JS_Library_Validator.html in a browser to test.\"",
+    "verify": "node -e \"const fs=require('fs'); const crypto=require('crypto'); const html=fs.readFileSync('JS_Library_Validator.html','utf8'); if(!html.includes('0.2.0')) throw new Error('Version mismatch in HTML'); console.log('✓ Version verified');\""
+  },
+  "keywords": [
+    "validator",
+    "audit",
+    "testing",
+    "schiavinato-sharing",
+    "bip39",
+    "shamir",
+    "secret-sharing",
+    "cryptocurrency",
+    "security",
+    "verification",
+    "browser-tool",
+    "html-tool",
+    "air-gapped",
+    "inheritance",
+    "backup"
+  ],
+  "author": "GRIFORTIS <info@grifortis.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GRIFORTIS/schiavinato-sharing-js.git",
+    "directory": "validator"
+  },
+  "bugs": {
+    "url": "https://github.com/GRIFORTIS/schiavinato-sharing-js/issues"
+  },
+  "homepage": "https://github.com/GRIFORTIS/schiavinato-sharing-js/tree/main/validator#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
