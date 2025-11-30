@@ -81,11 +81,13 @@ jobs:
         run: |
           MAIN_VERSION=$(node -p "require('./package.json').version")
           VALIDATOR_VERSION=$(node -p "require('./validator/package.json').version")
+          echo "Main version: $MAIN_VERSION"
+          echo "Validator version: $VALIDATOR_VERSION"
           if [ "$MAIN_VERSION" != "$VALIDATOR_VERSION" ]; then
-            echo "Error: Version mismatch between main ($MAIN_VERSION) and validator ($VALIDATOR_VERSION)"
+            echo "Error: Version mismatch"
             exit 1
           fi
-          echo "✓ Versions synchronized: $MAIN_VERSION"
+          echo "Versions synchronized: $MAIN_VERSION"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
