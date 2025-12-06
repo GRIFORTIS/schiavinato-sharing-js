@@ -8,25 +8,25 @@ import { splitMnemonic, recoverMnemonic } from '../src/index';
 describe('Integration Tests - TEST_VECTORS.md', () => {
   const testMnemonic = 'spin result brand ahead poet carpet unusual chronic denial festival toy autumn';
   
-  // Expected shares from TEST_VECTORS.md
+  // Expected shares from TEST_VECTORS.md (v0.3.0 - deterministic checksums)
   const expectedShares = {
     1: {
       shareNumber: 1,
       wordShares: [82, 1572, 1342, 1044, 198, 849, 272, 679, 142, 811, 1965, 508],
-      checksumShares: [154, 555, 751, 1410],
-      globalChecksumVerificationShare: 1819
+      checksumShares: [943, 38, 1093, 1231],
+      globalChecksumVerificationShare: 1252
     },
     2: {
       shareNumber: 2,
       wordShares: [538, 1674, 415, 2047, 1112, 1420, 691, 1035, 1870, 941, 34, 891],
-      checksumShares: [1049, 1507, 859, 171],
-      globalChecksumVerificationShare: 1484
+      checksumShares: [574, 473, 1543, 1866],
+      globalChecksumVerificationShare: 350
     },
     3: {
       shareNumber: 3,
       wordShares: [994, 1776, 1541, 997, 2026, 1991, 1110, 1391, 1545, 1071, 156, 1274],
-      checksumShares: [1944, 406, 967, 985],
-      globalChecksumVerificationShare: 1149
+      checksumShares: [205, 908, 1993, 448],
+      globalChecksumVerificationShare: 1501
     }
   };
 

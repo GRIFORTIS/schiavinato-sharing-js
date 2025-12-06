@@ -7,22 +7,26 @@
 
 import { validateMnemonic as validateBip39 } from '@scure/bip39';
 import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
-import { FIELD_PRIME } from '../core/field.js';
+import { FIELD_PRIME, modAdd } from '../core/field.js';
 import { randomPolynomial, evaluatePolynomial } from '../core/polynomial.js';
-import { computeRowChecks, computeGlobalChecksum } from './checksums.js';
-import { sanitizeMnemonic, ensureSupportedWordCount } from '../utils/validation.js';
+import { sanitizeMnemonic, ensureSupportedWordCount, WORDS_PER_ROW } from '../utils/validation.js';
 import { secureWipeArray } from '../utils/security.js';
 import type { Share, SplitOptions } from '../types.js';
 
 /**
  * Splits a BIP39 mnemonic into n Shamir shares with threshold k.
  * 
- * Implements the Schiavinato Sharing scheme:
+ * Implements the Schiavinato Sharing scheme (v0.3.0):
  * 1. Validates the BIP39 mnemonic
  * 2. Converts words to indices (0-2047)
- * 3. Computes row and global checksums
- * 4. Creates degree-(k-1) polynomials for each secret
- * 5. Evaluates polynomials at x = 1, 2, ..., n
+ * 3. Creates degree-(k-1) polynomials for word secrets
+ * 4. Evaluates word polynomials at x = 1, 2, ..., n
+ * 5. Computes checksum shares deterministically as sum of word shares (mod 2053)
+ * 
+ * v0.3.0 Change: Checksum shares are now computed deterministically during share
+ * generation, enabling integrity validation during manual splitting. Row checksum
+ * share = sum of 3 word shares in that row. Global checksum share = sum of all
+ * word shares. This maintains all LSSS security properties while adding verifiability.
  * 
  * @param mnemonic - The BIP39 mnemonic phrase to split
  * @param k - Threshold: number of shares required for recovery (minimum 2)
@@ -90,22 +94,12 @@ export async function splitMnemonic(
     return index;
   });
   
-  // Compute checksums
-  const checksumSecrets = computeRowChecks(wordIndices);
-  const globalChecksumSecret = computeGlobalChecksum(wordIndices);
-  
   // Create polynomials (degree = k - 1)
   const degree = k - 1;
   
   const wordPolynomials = wordIndices.map((secret) => 
     randomPolynomial(secret, degree)
   );
-  
-  const checksumPolynomials = checksumSecrets.map((secret) => 
-    randomPolynomial(secret, degree)
-  );
-  
-  const globalChecksumPolynomial = randomPolynomial(globalChecksumSecret, degree);
   
   // Generate shares by evaluating polynomials at x = 1, 2, ..., n
   const shares: Share[] = [];
@@ -124,13 +118,23 @@ export async function splitMnemonic(
         share.wordShares.push(evaluatePolynomial(polynomial, shareIndex));
       }
       
-      // Evaluate checksum polynomials
-      for (const polynomial of checksumPolynomials) {
-        share.checksumShares.push(evaluatePolynomial(polynomial, shareIndex));
+      // v0.3.0: Deterministic checksum computation
+      // Checksum shares are computed as the sum of word shares (mod 2053)
+      // This enables share integrity validation during splitting
+      
+      // Calculate row checksum shares
+      const rowCount = wordIndices.length / WORDS_PER_ROW;
+      for (let row = 0; row < rowCount; row++) {
+        const base = row * WORDS_PER_ROW;
+        const checksumShare = modAdd(
+          modAdd(share.wordShares[base], share.wordShares[base + 1]),
+          share.wordShares[base + 2]
+        );
+        share.checksumShares.push(checksumShare);
       }
       
-      // Evaluate global checksum polynomial
-      share.globalChecksumVerificationShare = evaluatePolynomial(globalChecksumPolynomial, shareIndex);
+      // Calculate global checksum share
+      share.globalChecksumVerificationShare = share.wordShares.reduce((acc, val) => modAdd(acc, val), 0);
       
       shares.push(share);
     }
@@ -139,10 +143,7 @@ export async function splitMnemonic(
   } finally {
     // Security: Clean up sensitive data from memory
     secureWipeArray(wordIndices);
-    secureWipeArray(checksumSecrets);
     wordPolynomials.forEach(poly => secureWipeArray(poly));
-    checksumPolynomials.forEach(poly => secureWipeArray(poly));
-    secureWipeArray(globalChecksumPolynomial);
   }
 }
 

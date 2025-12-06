@@ -1,6 +1,6 @@
 {
   "name": "@grifortis/schiavinato-sharing",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Human-executable secret sharing for BIP39 mnemonics using GF(2053) - Universal multi-chain custody for Bitcoin, Ethereum, and all BIP39-compatible wallets",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

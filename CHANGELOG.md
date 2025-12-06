@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-12-06
+
+### Changed
+- Checksum shares are now computed deterministically as the sum of word shares (mod 2053) rather than using independent random polynomials
+- This change enables share integrity validation during the splitting process
+- Recovery algorithm unchanged - all existing shares remain recoverable
+- Maintains all LSSS security properties
+
+### Benefits
+- Users can verify share integrity during manual splitting
+- Row checksum share = sum of 3 word shares in that row (mod 2053)
+- Global checksum share = sum of all word shares (mod 2053)
+- Catches arithmetic errors before share distribution
+- Zero impact on recovery time or process
+
+### Security Note
+- No information leakage (checksums are deterministic functions of words)
+- Threshold property preserved (still requires k shares for recovery)
+- Entropy source unchanged (word polynomials remain random)
+
+### Migration
+- No API changes required
+- Shares created with v0.2.0 remain recoverable by v0.3.0
+- Shares created with v0.3.0 remain recoverable by v0.2.0
+- The only difference is checksum computation method during split
+
 ## [0.2.0] - 2025-11-30
 
 ### Changed
