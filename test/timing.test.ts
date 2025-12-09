@@ -14,6 +14,12 @@ function median(values: number[]): number {
 
 function runTrials(fn: () => void, iterations: number, trials: number): number {
   const results: number[] = [];
+  // One warmup trial to reduce cold-start noise
+  {
+    const start = performance.now();
+    for (let i = 0; i < iterations; i++) fn();
+    const _ = performance.now() - start;
+  }
   for (let t = 0; t < trials; t++) {
     const start = performance.now();
     for (let i = 0; i < iterations; i++) fn();
@@ -24,19 +30,20 @@ function runTrials(fn: () => void, iterations: number, trials: number): number {
 
 describe('Timing harness (manual)', () => {
   it('constantTimeEqual shows similar timing for equal vs different values', () => {
-    const iterations = 50000;
-    const trials = 5; // reduce jitter sensitivity
+    const iterations = 80000;
+    const trials = 7; // reduce jitter sensitivity
     const tEqual = runTrials(() => constantTimeEqual(1234, 1234), iterations, trials);
     const tDiff = runTrials(() => constantTimeEqual(1234, 1235), iterations, trials);
 
     const ratio = tEqual / tDiff;
-    expect(ratio).toBeGreaterThan(0.2);
-    expect(ratio).toBeLessThan(6.0);
+    // Expect similar timing; allow modest variance on laptops
+    expect(ratio).toBeGreaterThan(0.4);
+    expect(ratio).toBeLessThan(2.5);
   });
 
   it('constantTimeStringEqual shows similar timing for equal vs different strings', () => {
-    const iterations = 20000;
-    const trials = 5;
+    const iterations = 30000;
+    const trials = 7;
     const a = '0110110011001100';
     const b = '0110110011001100';
     const c = '0110110011001101';
@@ -45,7 +52,7 @@ describe('Timing harness (manual)', () => {
     const tDiff = runTrials(() => constantTimeStringEqual(a, c), iterations, trials);
 
     const ratio = tEqual / tDiff;
-    expect(ratio).toBeGreaterThan(0.2);
-    expect(ratio).toBeLessThan(6.0);
+    expect(ratio).toBeGreaterThan(0.4);
+    expect(ratio).toBeLessThan(2.5);
   });
 });
