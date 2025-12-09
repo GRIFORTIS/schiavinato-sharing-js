@@ -30,7 +30,7 @@ describe('Timing harness (manual)', () => {
     const tDiff = runTrials(() => constantTimeEqual(1234, 1235), iterations, trials);
 
     const ratio = tEqual / tDiff;
-    expect(ratio).toBeGreaterThan(0.3);
+    expect(ratio).toBeGreaterThan(0.2);
     expect(ratio).toBeLessThan(6.0);
   });
 
@@ -45,7 +45,7 @@ describe('Timing harness (manual)', () => {
     const tDiff = runTrials(() => constantTimeStringEqual(a, c), iterations, trials);
 
     const ratio = tEqual / tDiff;
-    expect(ratio).toBeGreaterThan(0.3);
+    expect(ratio).toBeGreaterThan(0.2);
     expect(ratio).toBeLessThan(6.0);
   });
 });

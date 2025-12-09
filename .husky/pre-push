@@ -3,7 +3,7 @@ npm run test:coverage
 
 # Run timing/side-channel harness for constant-time validation
 echo "Running timing harness for constant-time validation..."
-npm test -- --include test/timing.test.ts
+npx vitest run test/timing.test.ts
 
 # Build to ensure no build errors
 npm run build
