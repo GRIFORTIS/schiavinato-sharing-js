@@ -42,7 +42,10 @@ export {
 // Export checksum functions (for verification)
 export { 
   computeRowChecks,
-  computeGlobalChecksum 
+  computeGlobalChecksum,
+  sumPolynomials,
+  computeRowCheckPolynomials,
+  computeGlobalCheckPolynomial
 } from './schiavinato/checksums.js';
 
 // Export utility functions
@@ -96,7 +99,7 @@ export function validateBip39Mnemonic(mnemonic: string, wordlist = englishWordli
 export { englishWordlistInternal as englishWordlist };
 
 // Library version
-export const VERSION = '0.1.0';
+export const VERSION = '0.4.0';
 
 /**
  * Main entry point namespace for backward compatibility with HTML tool.

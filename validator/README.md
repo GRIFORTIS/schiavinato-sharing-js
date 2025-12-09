@@ -3,9 +3,11 @@
 [![npm version](https://img.shields.io/npm/v/@grifortis/schiavinato-validator.svg)](https://www.npmjs.com/package/@grifortis/schiavinato-validator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Interactive browser-based validator and testing tool for Schiavinato Sharing**
+**Interactive browser-based validator and testing tool for Schiavinato Sharing v0.4.0**
 
 A professional-grade, transparent validation interface for the Schiavinato Sharing cryptographic scheme. This tool serves as the core GRIFORTIS asset for testing, auditing, and demonstrating human-executable secret sharing for BIP39 mnemonics.
+
+**v0.4.0 Update**: Now includes dual-path checksum validation to detect bit flips and hardware faults during share generation and recovery.
 
 ## Overview
 

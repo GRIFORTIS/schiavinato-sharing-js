@@ -198,7 +198,7 @@ const recovered = recoverMnemonic(
 - ✅ **Zero dependencies** (except for BIP39 and crypto utilities)
 - ✅ **Node.js and browser support** (CommonJS + ESM + IIFE)
 - ✅ **Built-in validation** for mnemonics and shares
-- ✅ **Checksum verification** to detect errors
+- ✅ **Dual-path checksum verification** to detect bit flips and hardware faults (v0.4.0)
 - ✅ **Constant-time operations** where applicable
 - ✅ **Extensive test suite** (100% code coverage)
 - ✅ **Production-ready** with semantic versioning
@@ -232,6 +232,14 @@ When using this library:
 5. **Use checksums**: Enable checksum verification (default)
 6. **Offline use**: Perform sensitive operations on air-gapped machines
 
+### Verification & CI Guards
+
+- CI enforces lint, typecheck, tests, and coverage thresholds (branches ≥85%, functions/lines/statements ≥90%).
+- Dependency audit gate: `npm audit --audit-level=high --production` runs in CI and fails on high/critical issues.
+- Secrets scanning: CI runs gitleaks to catch committed secrets.
+- Releases ship with SHA256 checksums and a CycloneDX `sbom.json`; verify with `sha256sum -c CHECKSUMS.txt`.
+- Build artifacts (library, browser bundle, validator) are produced in CI and attached to releases for traceability.
+
 ### Reporting Security Issues
 
 See our [Security Policy](.github/SECURITY.md) for reporting vulnerabilities.
@@ -259,7 +267,22 @@ Schiavinato Sharing is a secret-sharing scheme for BIP39 mnemonics:
 2. **Polynomial**: Create polynomial of degree k-1 with secret as constant term
 3. **Evaluation**: Evaluate polynomial at n different points to generate shares
 4. **Recovery**: Use Lagrange interpolation to reconstruct the polynomial
-5. **Checksums**: Add error-detection checksums to each share
+5. **Checksums**: Add error-detection checksums to each share with dual-path validation
+
+#### Dual-Path Checksum Validation (v0.4.0)
+
+The library implements redundant checksum validation to detect bit flips and hardware faults:
+
+- **Path A (Direct)**: Compute checksums by summing word shares modulo 2053
+- **Path B (Polynomial)**: Create checksum polynomials by summing word polynomial coefficients, then evaluate
+
+Both paths must produce identical results. Any disagreement indicates:
+- Memory corruption during share generation or recovery
+- Bit flips in RAM or storage
+- Hardware faults in CPU arithmetic
+- Data transmission errors
+
+This redundancy provides an additional layer of validation beyond standard cryptographic checksums.
 
 See the [whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md) for mathematical details.
 

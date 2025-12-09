@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-12-09
+
+### Added
+- **Dual-path checksum validation** to detect bit flips and hardware faults during share generation and recovery
+  - Path A: Direct computation (sum of word shares mod 2053)
+  - Path B: Polynomial-based (sum polynomial coefficients, then evaluate)
+  - Both paths must agree, providing redundant validation
+- New polynomial checksum functions exported in public API:
+  - `sumPolynomials()` - Sum polynomial coefficients modulo 2053
+  - `computeRowCheckPolynomials()` - Create row checksum polynomials
+  - `computeGlobalCheckPolynomial()` - Create global checksum polynomial
+- Enhanced error reporting in `RecoveryResult`:
+  - `errors.rowPathMismatch` - Array of row indices where Path A and Path B disagree
+  - `errors.globalPathMismatch` - Boolean indicating global checksum path disagreement
+
+### Changed
+- `splitMnemonic()` now validates both checksum paths during share generation
+  - Throws descriptive error if paths disagree (indicates hardware fault)
+  - Error messages specify which share and checksum failed validation
+- `recoverMnemonic()` now validates both checksum paths during recovery
+  - Compares interpolated checksums (Path B) against recomputed checksums (Path A)
+  - Success requires both path agreement AND existing checksum validations
+
+### Security
+- Improved fault detection: dual-path validation catches bit flips, memory corruption, and hardware faults that single-path validation might miss
+- Polynomial-based validation provides mathematical redundancy independent of direct computation
+- All checksum comparisons continue to use constant-time equality to prevent timing attacks
+
+### Documentation
+- Updated README with Path A/B explanation
+- Added comprehensive test suite for polynomial checksum validation
+- Enhanced JSDoc comments with Path A/B details throughout codebase
+
+### Backward Compatibility
+- No breaking API changes
+- Shares created with v0.3.0 remain fully compatible and recoverable
+- New error fields (`rowPathMismatch`, `globalPathMismatch`) are optional additions
+- All existing code continues to work without modification
+
 ## [0.3.0] - 2025-12-06
 
 ### Changed

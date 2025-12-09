@@ -1,0 +1,26 @@
+{
+  "mnemonic": "spin result brand ahead poet carpet unusual chronic denial festival toy autumn",
+  "wordCount": 12,
+  "k": 2,
+  "n": 3,
+  "shares": [
+    {
+      "shareNumber": 1,
+      "wordShares": [1679, 1471, 218, 44, 1341, 283, 1912, 330, 475, 690, 1853, 136],
+      "checksumShares": [1315, 1668, 664, 626],
+      "globalChecksumVerificationShare": 167
+    },
+    {
+      "shareNumber": 2,
+      "wordShares": [1679, 1472, 220, 47, 1345, 288, 1918, 337, 483, 699, 1863, 147],
+      "checksumShares": [1318, 1680, 685, 656],
+      "globalChecksumVerificationShare": 233
+    },
+    {
+      "shareNumber": 3,
+      "wordShares": [1679, 1473, 222, 50, 1349, 293, 1924, 344, 491, 708, 1873, 158],
+      "checksumShares": [1321, 1692, 706, 686],
+      "globalChecksumVerificationShare": 299
+    }
+  ]
+}

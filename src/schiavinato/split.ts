@@ -11,17 +11,25 @@ import { FIELD_PRIME, modAdd } from '../core/field.js';
 import { randomPolynomial, evaluatePolynomial } from '../core/polynomial.js';
 import { sanitizeMnemonic, ensureSupportedWordCount, WORDS_PER_ROW } from '../utils/validation.js';
 import { secureWipeArray } from '../utils/security.js';
+import { computeRowCheckPolynomials, computeGlobalCheckPolynomial } from './checksums.js';
 import type { Share, SplitOptions } from '../types.js';
 
 /**
  * Splits a BIP39 mnemonic into n Shamir shares with threshold k.
  * 
- * Implements the Schiavinato Sharing scheme (v0.3.0):
+ * Implements the Schiavinato Sharing scheme (v0.4.0):
  * 1. Validates the BIP39 mnemonic
  * 2. Converts words to indices (0-2047)
  * 3. Creates degree-(k-1) polynomials for word secrets
  * 4. Evaluates word polynomials at x = 1, 2, ..., n
- * 5. Computes checksum shares deterministically as sum of word shares (mod 2053)
+ * 5. Computes checksum shares using dual-path validation:
+ *    - Path A: Sum of word shares (mod 2053) - direct computation
+ *    - Path B: Polynomial-based - sum polynomial coefficients, then evaluate
+ * 
+ * v0.4.0 Change: Implements dual-path checksum validation to detect bit flips
+ * and hardware faults. Checksum polynomials are created by summing word polynomial
+ * coefficients, then evaluated at each share point. Both paths must agree, providing
+ * redundant validation that catches corruption during share generation.
  * 
  * v0.3.0 Change: Checksum shares are now computed deterministically during share
  * generation, enabling integrity validation during manual splitting. Row checksum
@@ -101,6 +109,11 @@ export async function splitMnemonic(
     randomPolynomial(secret, degree)
   );
   
+  // v0.4.0: Compute checksum polynomials (Path B)
+  // These are created by summing word polynomial coefficients
+  const rowCheckPolynomials = computeRowCheckPolynomials(wordPolynomials);
+  const globalCheckPolynomial = computeGlobalCheckPolynomial(wordPolynomials);
+  
   // Generate shares by evaluating polynomials at x = 1, 2, ..., n
   const shares: Share[] = [];
   
@@ -118,23 +131,55 @@ export async function splitMnemonic(
         share.wordShares.push(evaluatePolynomial(polynomial, shareIndex));
       }
       
-      // v0.3.0: Deterministic checksum computation
-      // Checksum shares are computed as the sum of word shares (mod 2053)
-      // This enables share integrity validation during splitting
+      // v0.4.0: Dual-path checksum validation
+      // Path A: Direct sum of word shares (original v0.3.0 method)
+      // Path B: Evaluate checksum polynomials (new v0.4.0 method)
+      // Both paths must agree to detect bit flips and hardware faults
       
-      // Calculate row checksum shares
       const rowCount = wordIndices.length / WORDS_PER_ROW;
+      
+      // Calculate row checksum shares using both paths
       for (let row = 0; row < rowCount; row++) {
         const base = row * WORDS_PER_ROW;
-        const checksumShare = modAdd(
+        
+        // Path A: Sum of word shares
+        const checksumPathA = modAdd(
           modAdd(share.wordShares[base], share.wordShares[base + 1]),
           share.wordShares[base + 2]
         );
-        share.checksumShares.push(checksumShare);
+        
+        // Path B: Evaluate row checksum polynomial
+        const checksumPathB = evaluatePolynomial(rowCheckPolynomials[row], shareIndex);
+        
+        // Validate paths agree
+        if (checksumPathA !== checksumPathB) {
+          throw new Error(
+            `Row checksum path mismatch at share ${shareIndex}, row ${row + 1}: ` +
+            `Path A (sum)=${checksumPathA}, Path B (polynomial)=${checksumPathB}. ` +
+            `This indicates a hardware fault or memory corruption during share generation.`
+          );
+        }
+        
+        share.checksumShares.push(checksumPathA);
       }
       
-      // Calculate global checksum share
-      share.globalChecksumVerificationShare = share.wordShares.reduce((acc, val) => modAdd(acc, val), 0);
+      // Calculate global checksum share using both paths
+      // Path A: Sum of all word shares
+      const globalPathA = share.wordShares.reduce((acc, val) => modAdd(acc, val), 0);
+      
+      // Path B: Evaluate global checksum polynomial
+      const globalPathB = evaluatePolynomial(globalCheckPolynomial, shareIndex);
+      
+      // Validate paths agree
+      if (globalPathA !== globalPathB) {
+        throw new Error(
+          `Global checksum path mismatch at share ${shareIndex}: ` +
+          `Path A (sum)=${globalPathA}, Path B (polynomial)=${globalPathB}. ` +
+          `This indicates a hardware fault or memory corruption during share generation.`
+        );
+      }
+      
+      share.globalChecksumVerificationShare = globalPathA;
       
       shares.push(share);
     }
@@ -144,6 +189,8 @@ export async function splitMnemonic(
     // Security: Clean up sensitive data from memory
     secureWipeArray(wordIndices);
     wordPolynomials.forEach(poly => secureWipeArray(poly));
+    rowCheckPolynomials.forEach(poly => secureWipeArray(poly));
+    secureWipeArray(globalCheckPolynomial);
   }
 }
 

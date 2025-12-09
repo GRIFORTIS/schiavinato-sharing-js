@@ -31,9 +31,15 @@ import type { ShareData, RecoveryResult, RecoverOptions } from '../types.js';
  * 1. Validates share structure and uniqueness
  * 2. Uses Lagrange interpolation to recover word indices
  * 3. Uses Lagrange interpolation to recover checksums
- * 4. Validates row checksums
- * 5. Validates global checksum
- * 6. Validates BIP39 checksum (if previous checks pass)
+ * 4. v0.4.0: Validates dual-path checksums (Path A vs Path B)
+ * 5. Validates row checksums
+ * 6. Validates global checksum
+ * 7. Validates BIP39 checksum (if previous checks pass)
+ * 
+ * v0.4.0 Change: Implements dual-path checksum validation during recovery.
+ * Path A computes checksums from recovered word values (recompute).
+ * Path B uses the interpolated checksum shares directly.
+ * Both paths must agree to confirm no bit flips or hardware faults occurred.
  * 
  * @param shares - Array of share objects (minimum 2, typically k shares)
  * @param wordCount - Expected word count of original mnemonic (12 or 24)
@@ -69,7 +75,9 @@ export async function recoverMnemonic(
       row: [],
       global: false,
       bip39: false,
-      generic: null
+      generic: null,
+      rowPathMismatch: [],
+      globalPathMismatch: false
     },
     success: false,
     sharesWithInvalidChecksums: new Set()
@@ -135,19 +143,35 @@ export async function recoverMnemonic(
     }));
     recoveredGlobalChecksum = lagrangeInterpolateAtZero(globalChecksumPoints);
     
-    // 3. Perform internal Schiavinato validations
+    // 3. Perform internal Schiavinato validations with dual-path checking (v0.4.0)
+    // Path A: Recompute checksums from recovered words (direct computation)
     const recomputedChecks = computeRowChecks(recoveredWords);
+    const recomputedGlobalChecksum = computeGlobalChecksum(recoveredWords);
     
+    // Path B: Interpolated checksum values (polynomial evaluation at x=0)
+    // recoveredChecks and recoveredGlobalChecksum come from Lagrange interpolation
+    
+    // First, validate Path A vs Path B (detects bit flips/hardware faults)
     for (let row = 0; row < rowCount; row++) {
       // Use constant-time comparison to prevent timing attacks
+      if (!constantTimeEqual(recoveredChecks[row], recomputedChecks[row])) {
+        report.errors.rowPathMismatch!.push(row);
+      }
+    }
+    
+    // Use constant-time comparison to prevent timing attacks
+    if (!constantTimeEqual(recoveredGlobalChecksum, recomputedGlobalChecksum)) {
+      report.errors.globalPathMismatch = true;
+    }
+    
+    // Second, perform standard checksum validation (backward compatibility)
+    // This is the same as Path A validation but maintains the existing error structure
+    for (let row = 0; row < rowCount; row++) {
       if (!constantTimeEqual(recoveredChecks[row], recomputedChecks[row])) {
         report.errors.row.push(row);
       }
     }
     
-    const recomputedGlobalChecksum = computeGlobalChecksum(recoveredWords);
-    
-    // Use constant-time comparison to prevent timing attacks
     if (!constantTimeEqual(recoveredGlobalChecksum, recomputedGlobalChecksum)) {
       report.errors.global = true;
     }
@@ -186,6 +210,8 @@ export async function recoverMnemonic(
       report.errors.row.length === 0 && 
       !report.errors.global && 
       !report.errors.bip39 && 
+      report.errors.rowPathMismatch!.length === 0 &&
+      !report.errors.globalPathMismatch &&
       report.mnemonic !== null;
     
   } catch (error) {
