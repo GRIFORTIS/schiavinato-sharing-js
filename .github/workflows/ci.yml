@@ -18,8 +18,8 @@ jobs:
 
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@v2
-        with:
-          license: ${{ secrets.GITLEAKS_LICENSE }}
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
   test:
     name: Test on Node.js ${{ matrix.node-version }}
