@@ -17,13 +17,17 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitleaks (license provided)
-        if: ${{ secrets.GITLEAKS_LICENSE != '' }}
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        if: env.GITLEAKS_LICENSE != ''
         uses: gitleaks/gitleaks-action@v2
         with:
           license: ${{ secrets.GITLEAKS_LICENSE }}
 
       - name: Skip gitleaks (no license configured)
-        if: ${{ secrets.GITLEAKS_LICENSE == '' }}
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        if: env.GITLEAKS_LICENSE == ''
         run: echo "GITLEAKS_LICENSE secret not set; skipping secret scan."
 
   test:
