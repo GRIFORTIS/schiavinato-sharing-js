@@ -16,9 +16,9 @@ The Schiavinato Sharing Validator is a comprehensive, single-file HTML applicati
 **Core Value Propositions:**
 - 🔍 **Full Transparency**: Complete source code visible and auditable
 - 🎯 **Zero Installation**: Works in any modern browser
-- 🛡️ **Air-Gapped Capable**: Operates offline with cached dependencies
+- 🌐 **Internet Required**: Loads published npm library from CDN (first use only, then cached)
 - 📊 **Visual Interface**: Interactive testing with immediate feedback
-- 🔬 **Professional Quality**: Used across all GRIFORTIS product tiers
+- 🧪 **Development Tool**: For testing and validation only - NOT for real crypto seeds
 
 ## Installation & Access
 
@@ -117,8 +117,28 @@ The validator includes a "Break BIP39" button on Share 1 that intentionally corr
 - **Do NOT** use this tool with real cryptocurrency wallets
 - **Do NOT** use generated seeds for actual funds
 - **Do NOT** use in air-gapped environments for real assets
-- This tool loads external dependencies via CDN
+- This tool loads external dependencies via CDN (requires internet)
 - Intended for development, testing, and auditing only
+
+## 🔐 Verifying Validator Authenticity
+
+Before using the validator, verify it hasn't been tampered with:
+
+```bash
+# Download validator and signature
+wget https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/download/v0.5.1/schiavinato-validator-v0.5.1.html
+wget https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/download/v0.5.1/schiavinato-validator-v0.5.1.html.asc
+
+# Import GRIFORTIS public key (one-time)
+curl -fsSL https://raw.githubusercontent.com/GRIFORTIS/schiavinato-sharing-js/main/GRIFORTIS-PGP-PUBLIC-KEY.asc | gpg --import
+
+# Verify signature
+gpg --verify schiavinato-validator-v0.5.1.html.asc schiavinato-validator-v0.5.1.html
+```
+
+**Expected fingerprint:** `7921 FD56 9450 8DA4 020E  671F 4CFE 6248 C57F 15DF`
+
+**Expected output:** "Good signature from GRIFORTIS <security@grifortis.com>"
 
 ## Auditing & Security
 
@@ -281,7 +301,7 @@ See the main [CONTRIBUTING.md](../CONTRIBUTING.md) for general contribution guid
 - **[GRIFORTIS](https://github.com/GRIFORTIS)** – Organization homepage
 
 **Resources:**
-- **[Whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md)** – Complete mathematical description
+- **[Whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/releases/latest/download/WHITEPAPER.pdf)** ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.tex)) – Complete mathematical description
 - **[Test Vectors](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/TEST_VECTORS.md)** – Validation data
 - **[RFC](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/RFC.md)** – Protocol specification
 

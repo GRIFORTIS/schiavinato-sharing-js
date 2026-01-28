@@ -1,6 +1,6 @@
 {
   "name": "@grifortis/schiavinato-validator",
-  "version": "0.4.0",
+  "version": "0.5.1",
   "description": "Interactive browser-based validator and testing tool for Schiavinato Sharing - human-executable secret sharing for BIP39 mnemonics",
   "main": "JS_Library_Validator.html",
   "files": [
@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "test": "echo \"Validator is a standalone HTML tool. Open JS_Library_Validator.html in a browser to test.\"",
-    "verify": "node -e \"const fs=require('fs'); const crypto=require('crypto'); const html=fs.readFileSync('JS_Library_Validator.html','utf8'); if(!html.includes('0.3.0')) throw new Error('Version mismatch in HTML'); console.log('✓ Version verified');\""
+    "verify": "node -e \"const fs=require('fs'); const pkg=require('./package.json'); const html=fs.readFileSync('JS_Library_Validator.html','utf8'); const needle='JS Library Validator v'+pkg.version; if(!html.includes(needle)) throw new Error('Version mismatch in HTML: expected '+needle); console.log('✓ Version verified:', pkg.version);\""
   },
   "keywords": [
     "validator",

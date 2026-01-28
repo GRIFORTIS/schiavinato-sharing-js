@@ -2,7 +2,7 @@ name: Release with Checksums
 
 on:
   release:
-    types: [created]
+    types: [published]
   workflow_dispatch:
     inputs:
       version:
@@ -19,10 +19,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
     
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         node-version: '20.x'
         registry-url: 'https://registry.npmjs.org'
@@ -45,6 +45,12 @@ jobs:
 
     - name: Generate SBOM (CycloneDX)
       run: npx @cyclonedx/bom -o sbom.json
+    
+    - name: Import GPG key
+      run: |
+        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --quick-set-expire $(gpg --list-secret-keys --with-colons | grep fpr | head -1 | cut -d: -f10) 0
+      if: github.event_name == 'release'
     
     - name: Generate SHA256 checksums
       run: |
@@ -102,6 +108,22 @@ jobs:
         echo "=== Generated Checksums ==="
         cat CHECKSUMS.txt
     
+    - name: Sign checksums with GPG
+      if: github.event_name == 'release'
+      run: |
+        # Sign CHECKSUMS.txt
+        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --armor --detach-sign CHECKSUMS.txt
+        
+        # Sign CHECKSUMS.json
+        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --armor --detach-sign CHECKSUMS.json
+        
+        # Verify signatures
+        gpg --verify CHECKSUMS.txt.asc CHECKSUMS.txt
+        gpg --verify CHECKSUMS.json.asc CHECKSUMS.json
+        
+        echo "=== GPG Signatures Created ==="
+        ls -lh CHECKSUMS.*.asc
+    
     - name: Create tarball with checksums
       run: |
         # Create a release tarball
@@ -120,38 +142,106 @@ jobs:
         echo "=== Tarball Checksum ==="
         cat grifortis-schiavinato-sharing-${GITHUB_REF_NAME}.tar.gz.sha256
     
-    - name: Upload checksums to release
+    - name: Sign tarball with GPG
       if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
+      run: |
+        # Sign the tarball
+        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --armor --detach-sign grifortis-schiavinato-sharing-${GITHUB_REF_NAME}.tar.gz
+        
+        # Verify signature
+        gpg --verify grifortis-schiavinato-sharing-${GITHUB_REF_NAME}.tar.gz.asc grifortis-schiavinato-sharing-${GITHUB_REF_NAME}.tar.gz
+        
+        echo "=== Tarball GPG Signature Created ==="
+        ls -lh grifortis-schiavinato-sharing-*.tar.gz.asc
+    
+    - name: Sign validator HTML with GPG
+      if: github.event_name == 'release'
+      run: |
+        # Sign validator HTML
+        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --armor --detach-sign validator/dist/schiavinato-validator-${GITHUB_REF_NAME}.html
+        
+        # Sign validator checksum
+        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --armor --detach-sign validator/dist/schiavinato-validator-${GITHUB_REF_NAME}.html.sha256
+        
+        # Verify signatures
+        gpg --verify validator/dist/schiavinato-validator-${GITHUB_REF_NAME}.html.asc validator/dist/schiavinato-validator-${GITHUB_REF_NAME}.html
+        gpg --verify validator/dist/schiavinato-validator-${GITHUB_REF_NAME}.html.sha256.asc validator/dist/schiavinato-validator-${GITHUB_REF_NAME}.html.sha256
+        
+        echo "=== Validator GPG Signatures Created ==="
+        ls -lh validator/dist/*.asc
+    
+    - name: Upload checksums and signatures to release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
       with:
         files: |
           sbom.json
           CHECKSUMS.txt
+          CHECKSUMS.txt.asc
           CHECKSUMS.json
+          CHECKSUMS.json.asc
           grifortis-schiavinato-sharing-*.tar.gz
           grifortis-schiavinato-sharing-*.tar.gz.sha256
+          grifortis-schiavinato-sharing-*.tar.gz.asc
           validator/dist/schiavinato-validator-*.html
           validator/dist/schiavinato-validator-*.html.sha256
+          validator/dist/schiavinato-validator-*.html.asc
+          validator/dist/schiavinato-validator-*.html.sha256.asc
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Publish to NPM
+      if: github.event_name == 'workflow_dispatch'
       run: npm publish --provenance --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     
-    - name: Comment on release with checksums
+    - name: Comment on release with checksums and GPG info
       if: github.event_name == 'release'
-      uses: actions/github-script@v7
+      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
       with:
         script: |
           const fs = require('fs');
           const checksums = fs.readFileSync('CHECKSUMS.txt', 'utf8');
           
+          const body = `## 🔐 Security Verification
+          
+          ### SHA256 Checksums
+          
+          \`\`\`
+          ${checksums}
+          \`\`\`
+          
+          **Verify checksums:**
+          \`\`\`bash
+          sha256sum -c CHECKSUMS.txt
+          \`\`\`
+          
+          ### GPG Signatures
+          
+          All release artifacts are signed with GRIFORTIS GPG key.
+          
+          **Import public key:**
+          \`\`\`bash
+          curl -fsSL https://raw.githubusercontent.com/GRIFORTIS/schiavinato-sharing-spec/main/GRIFORTIS-PGP-PUBLIC-KEY.asc | gpg --import
+          \`\`\`
+          
+          **Verify signatures:**
+          \`\`\`bash
+          # Verify checksums
+          gpg --verify CHECKSUMS.txt.asc CHECKSUMS.txt
+          
+          # Verify tarball
+          gpg --verify grifortis-schiavinato-sharing-${context.payload.release.tag_name}.tar.gz.asc grifortis-schiavinato-sharing-${context.payload.release.tag_name}.tar.gz
+          \`\`\`
+          
+          **Key fingerprint:** \`4C FE 62 48 C5 7F 15 DF\`
+          `;
+          
           github.rest.issues.createComment({
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.payload.release.id,
-            body: `## 🔐 SHA256 Checksums\n\n\`\`\`\n${checksums}\n\`\`\`\n\n**Verification**: Download \`CHECKSUMS.txt\` and run:\n\`\`\`bash\nsha256sum -c CHECKSUMS.txt\n\`\`\``
+            body: body
           });
 

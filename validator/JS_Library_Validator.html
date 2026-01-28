@@ -1,10 +1,42 @@
 
 <html lang="en">
 <!-- 
-    Schiavinato Sharing Validator v0.4.0
+    Schiavinato Sharing Validator v0.5.1
     
     This version number is automatically synchronized with the main library.
     Do not manually edit - use 'npm run build:validator' to update.
+
+==========================================================================
+⚠️ DEVELOPMENT TOOL ONLY - NOT FOR PRODUCTION USE ⚠️
+==========================================================================
+
+This is a TESTING and VALIDATION tool for developers and auditors.
+DO NOT use this tool with real cryptocurrency seeds or wallets.
+
+CRITICAL WARNINGS:
+
+1. TESTING ONLY - Do NOT use for real crypto assets
+   This tool is designed for library validation and testing purposes only.
+   It should NEVER be used with real cryptocurrency wallets or seeds.
+
+2. REQUIRES INTERNET - Not air-gap safe
+   This tool loads cryptographic libraries from CDN (esm.sh).
+   It requires internet connection on first use.
+   DO NOT use in air-gapped environments for real funds.
+
+3. VERIFY BEFORE USE
+   Download from: github.com/GRIFORTIS/schiavinato-sharing-js/releases
+   Verify GPG signature before use - see repository README
+   Expected GPG fingerprint: 7921 FD56 9450 8DA4 020E  671F 4CFE 6248 C57F 15DF
+
+4. YOU ARE RESPONSIBLE
+   GRIFORTIS and contributors are not responsible for any loss of funds
+   or damages resulting from using this software.
+
+For PRODUCTION use with real crypto assets:
+- Use the specification's air-gapped HTML: github.com/GRIFORTIS/schiavinato-sharing-spec
+- That tool is self-contained with zero external dependencies
+
 -->
 <head>
     <meta charset="UTF-8">
@@ -13,7 +45,7 @@
     
     <style>
         /* ==========================================================================
-        GRIFORTIS - DESIGN SYSTEM (v0.4.0)
+        GRIFORTIS - DESIGN SYSTEM (v0.5.1)
         ==========================================================================
         */
 
@@ -176,6 +208,16 @@
             font-size: 16px;
         }
         
+        /* Custom radio group item */
+        .radio-group-item { display: flex; align-items: center; margin-bottom: 10px; }
+        .radio-group-item label {
+            display: flex; align-items: center; cursor: pointer;
+            font-weight: 400;
+            color: var(--text-main);
+            margin: 0;
+            margin-left: 8px; /* Spacing between radio button and text */
+        }
+
         /* --- 7. BUTTONS --- */
         .btn {
             width: auto;
@@ -319,6 +361,13 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
+        .seed-actions-column {
+            display: flex;
+            flex-direction: column;
+        }
+        .seed-actions-column .seed-buttons-grid:last-of-type {
+            margin-top: auto;
+        }
         .button-with-dropdown {
             display: flex;
             flex-direction: column;
@@ -409,6 +458,25 @@
         .button-row-space-between {
             justify-content: space-between;
         }
+        
+        /* Polynomial display styles */
+        #polynomial-section h2 {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+        }
+        #polynomial-section h2:hover {
+            color: var(--cyber-gold);
+        }
+        
+        /* Radio button styles for mode selection */
+        input[type="radio"] {
+            accent-color: var(--cyber-gold);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
 
     </style>
 </head>
@@ -477,29 +545,67 @@
             <!-- 2. CREATE SHARES -->
             <section class="component-card">
                 <h2>Create Shares</h2>
+                
                 <div class="grid-container grid-2col">
                     <!-- Left: Input Field -->
                     <div class="form-group">
                         <label for="seed-input">Enter/Create BIP39 Seed</label>
                         <textarea id="seed-input" rows="12" placeholder="Enter 12, 15, 18, 21 or 24 words/IDs..."></textarea>
+                        
+                        <!-- Coefficients Input (Always visible) -->
+                        <div id="coefficients-section" style="margin-top: 15px;">
+                            <div class="form-group">
+                                <label for="coefficients-input">Random Coefficients (a₁, a₂, ... values)</label>
+                                <textarea id="coefficients-input" rows="4" placeholder="Leave empty for Production (CSPRNG).
+For TEST_VECTORS: Enter comma-separated values.
+- 2-of-n: One value per word (a₁)
+- 3-of-n: Two values per word (a₁, a₂)"></textarea>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Right: Button Grid -->
-                    <div class="form-group">
+                    <div class="form-group seed-actions-column">
                         <label>Generate Seed</label>
                         <div class="seed-buttons-grid">
-                            <button class="btn btn-primary" onclick="generateSeed(24, 'words')">New 24 Words (Valid)</button>
-                            <button class="btn btn-primary" onclick="generateSeed(12, 'words')">New 12 Words (Valid)</button>
-                            <button class="btn btn-primary" onclick="generateSeed(24, 'ids')">New 24 IDs (Valid)</button>
-                            <button class="btn btn-primary" onclick="generateSeed(12, 'ids')">New 12 IDs (Valid)</button>
+                            <button class="btn btn-primary" onclick="generateSeed(24, 'words')">NEW 24 WORDS</button>
+                            <button class="btn btn-primary" onclick="generateSeed(12, 'words')">NEW 12 WORDS</button>
+                            <button class="btn btn-primary" onclick="generateSeed(24, 'ids')">NEW 24 IDS</button>
+                            <button class="btn btn-primary" onclick="generateSeed(12, 'ids')">NEW 12 IDS</button>
                         </div>
-                        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 10px;">All generators output valid BIP39 seeds only.</p>
+                        
+                        <div class="seed-buttons-grid" style="margin-top: 15px;">
+                            <button class="btn btn-secondary" onclick="loadTestVectorsExample3of5()">Load Test_Vector 3-of-5</button>
+                            <button class="btn btn-secondary" onclick="loadTestVectorsExample2of3()">Load Test_Vector 2-of-3</button>
+                        </div>
+
+                        <div class="seed-buttons-grid">
+                             <button class="btn btn-secondary" onclick="clearCreateFields()">Clean Fields</button>
+                             <button class="btn btn-primary" onclick="createShares()">Create Shares</button>
+                        </div>
                     </div>
                 </div>
+            </section>
+            
+            <!-- 2.5 POLYNOMIAL DETAILS (Always visible) -->
+            <section class="component-card" id="polynomial-section">
+                <h2>Polynomial Construction Details</h2>
                 
-                <div class="button-row">
-                    <button class="btn btn-secondary" onclick="clearCreateFields()">Clean Fields</button>
-                    <button class="btn btn-primary" onclick="createShares()">Create Shares</button>
+                <div class="grid-container grid-2col">
+                    <div class="form-group">
+                        <label>Word Polynomials (f_w1 through f_w12 or f_w24)</label>
+                        <textarea id="polynomial-words" rows="15" readonly style="font-size: 0.85rem; height: 100%; min-height: 300px;"></textarea>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="form-group">
+                            <label>Row Checksum Polynomials</label>
+                            <textarea id="polynomial-checksums" rows="6" readonly style="font-size: 0.85rem;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Global Integrity Check Polynomial</label>
+                            <textarea id="polynomial-gic" rows="6" readonly style="font-size: 0.85rem;"></textarea>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -538,7 +644,7 @@
         <!-- FOOTER -->
         <footer class="footer">
             <!-- VERSION: Auto-updated by build:validator script - do not manually edit -->
-            <p><strong>GRIFORTIS Schiavinato Sharing - JS Library Validator v0.4.0</strong><br>
+            <p><strong>GRIFORTIS Schiavinato Sharing - JS Library Validator v0.5.1</strong><br>
             <span style="color: var(--text-muted);">MIT License · Testing Tool · Not for Production Use</span></p>
         </footer>
     </div>
@@ -556,11 +662,10 @@
 
     <!-- JAVASCRIPT -->
     <!-- Import Map: Tells the browser where to find npm packages -->
+    <!-- v0.5.0: Removed @scure/bip39 dependency - now using native BIP39 implementation -->
     <script type="importmap">
     {
       "imports": {
-        "@scure/bip39": "https://esm.sh/@scure/bip39@1.2.1",
-        "@scure/bip39/wordlists/english": "https://esm.sh/@scure/bip39@1.2.1/wordlists/english",
         "@noble/hashes/sha256": "https://esm.sh/@noble/hashes@1.3.3/sha256",
         "@noble/hashes/sha512": "https://esm.sh/@noble/hashes@1.3.3/sha512",
         "@noble/hashes/pbkdf2": "https://esm.sh/@noble/hashes@1.3.3/pbkdf2",
@@ -573,7 +678,8 @@
         // MODULE LOADER
         try {
             console.log('🔄 Loading Schiavinato Sharing library (ESM build)...');
-            const SS = await import('../dist/index.mjs');
+            // Cache-busting query string to avoid stale ESM module caching during local testing.
+            const SS = await import(`../dist/index.mjs?v=${Date.now()}`);
             window.SchiavinatoSharing = SS;
             console.log('✅ Schiavinato Sharing library loaded successfully');
             console.log('📌 Library version:', SS.VERSION);
@@ -590,12 +696,11 @@
         let currentK = 2;
         let currentN = 3;
         let currentShares = [];
-        let bip39Wordlist = [];
         
         window.addEventListener('schiavinato-library-ready', () => {
             const SS = window.SchiavinatoSharing;
-            bip39Wordlist = Array.isArray(SS?.englishWordlist) ? SS.englishWordlist : [];
-            console.log('📚 Loaded BIP39 wordlist entries:', bip39Wordlist.length);
+            console.log('📚 Native BIP39 implementation loaded with 1-based indexing');
+            console.log('✅ Library version:', SS.VERSION);
         });
         
         document.getElementById('disclaimer-checkbox').addEventListener('change', (e) => {
@@ -614,6 +719,14 @@
                 currentN = currentK;
                 document.getElementById('total-n').value = currentN;
             }
+            
+            // Clear coefficients if K changes
+            const coefBox = document.getElementById('coefficients-input');
+            if (coefBox.value.trim() !== '') {
+                coefBox.value = '';
+            }
+            updateCoefficientsPlaceholder();
+            
             initializeShares();
         });
         
@@ -624,8 +737,53 @@
                 currentN = currentK;
                 e.target.value = currentN;
             }
+            
+            // Clear coefficients if N changes
+            const coefBox = document.getElementById('coefficients-input');
+            if (coefBox.value.trim() !== '') {
+                coefBox.value = '';
+            }
+            
             initializeShares();
         });
+
+        document.getElementById('seed-input').addEventListener('input', updateCoefficientsPlaceholder);
+        
+        function updateCoefficientsPlaceholder() {
+            const k = parseInt(document.getElementById('threshold-k').value) || 2;
+            const seedText = document.getElementById('seed-input').value.trim();
+            let countLabel = "12 or 24";
+            const multiplier = k - 1;
+            
+            if (seedText) {
+                // Try to count words
+                const words = seedText.split(/[\s\n]+/).filter(w => w.length > 0);
+                if (words.length === 12 || words.length === 24) {
+                     countLabel = (words.length * multiplier).toString();
+                } else {
+                    countLabel = `${12 * multiplier} or ${24 * multiplier}`;
+                }
+            } else {
+                countLabel = `${12 * multiplier} or ${24 * multiplier}`;
+            }
+            
+            const placeholder = `Leave empty for auto generation (CSPRNG). Add ${countLabel} comma-separated values for the selected ${k}-of-n scheme.`;
+            document.getElementById('coefficients-input').placeholder = placeholder;
+        }
+
+        // Initialize placeholder
+        updateCoefficientsPlaceholder();
+        
+        // Mode toggle listeners (Removed)
+        /*
+        document.querySelectorAll('input[name="share-mode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const isTestVectors = e.target.value === 'testvectors';
+                document.getElementById('testvectors-warning').style.display = isTestVectors ? 'block' : 'none';
+                document.getElementById('coefficients-section').style.display = isTestVectors ? 'block' : 'none';
+            });
+        });
+        */
 
         // --- UI DRAWING FUNCTIONS ---
         function generateShareLabelsHTML() {
@@ -701,6 +859,185 @@
         }
 
         // --- CORE LOGIC FUNCTIONS ---
+        
+        /**
+         * Unified split function for Validator tool.
+         * Generates shares and returns the polynomials used (even for random generation).
+         */
+        async function splitMnemonicForValidator(mnemonic, k, n, mode, customCoefficients) {
+            const SS = window.SchiavinatoSharing;
+            
+            // Validate inputs
+            const parsed = SS.parseInput(mnemonic);
+            const mnemonicString = parsed.words.join(' ');
+            
+            if (!SS.validateBip39Mnemonic(mnemonicString)) {
+                throw new Error('Invalid BIP39 mnemonic');
+            }
+            
+            const wordIndices = SS.mnemonicToIndices(mnemonicString);
+            const degree = k - 1;
+            
+            let wordPolynomials;
+
+            if (mode === 'testvectors') {
+                // TEST_VECTORS Mode
+                if (!Array.isArray(customCoefficients)) {
+                    throw new Error('TEST_VECTORS mode requires coefficient array');
+                }
+                
+                // Validate required count
+                const coeffsPerWord = k - 1;
+                const expectedCount = wordIndices.length * coeffsPerWord;
+                
+                if (customCoefficients.length !== expectedCount) {
+                    throw new Error(`Expected ${expectedCount} coefficients (${coeffsPerWord} per word * ${wordIndices.length} words), got ${customCoefficients.length}`);
+                }
+                
+                // Validate coefficients
+                for (let i = 0; i < customCoefficients.length; i++) {
+                    const coeff = customCoefficients[i];
+                    if (!Number.isInteger(coeff) || coeff < 1 || coeff > 2052) {
+                        throw new Error(`Coefficient ${i} (value=${coeff}) must be integer in range [1, 2052]`);
+                    }
+                }
+                
+                // Construct polynomials
+                wordPolynomials = wordIndices.map((secret, i) => {
+                    const poly = [secret];
+                    // Slice out coefficients for this word
+                    for (let j = 0; j < coeffsPerWord; j++) {
+                        poly.push(customCoefficients[i * coeffsPerWord + j]);
+                    }
+                    return poly;
+                });
+
+            } else {
+                // Production (Random) Mode
+                // Generate random polynomials using library primitives
+                wordPolynomials = wordIndices.map((secret) => 
+                    SS.randomPolynomial(secret, degree)
+                );
+            }
+            
+            // Compute checksum polynomials (using library)
+            const rowCheckPolynomials = SS.computeRowCheckPolynomials(wordPolynomials);
+            const globalCheckPolynomial = SS.computeGlobalIntegrityCheckPolynomial(wordPolynomials);
+            
+            // Generate shares
+            const shares = [];
+            for (let shareIndex = 1; shareIndex <= n; shareIndex++) {
+                const share = {
+                    shareNumber: shareIndex,
+                    wordShares: [],
+                    checksumShares: [],
+                    globalIntegrityCheckShare: 0
+                };
+                
+                // Evaluate word polynomials
+                for (const poly of wordPolynomials) {
+                    share.wordShares.push(SS.evaluatePolynomial(poly, shareIndex));
+                }
+                
+                // Evaluate checksum polynomials
+                for (const poly of rowCheckPolynomials) {
+                    share.checksumShares.push(SS.evaluatePolynomial(poly, shareIndex));
+                }
+                
+                // GIC
+                const gicBase = SS.evaluatePolynomial(globalCheckPolynomial, shareIndex);
+                share.globalIntegrityCheckShare = SS.modAdd(gicBase, shareIndex);
+                
+                shares.push(share);
+            }
+            
+            return {
+                shares,
+                polynomials: {
+                    word: wordPolynomials,
+                    rowCheck: rowCheckPolynomials,
+                    globalCheck: globalCheckPolynomial
+                }
+            };
+        }
+        
+        function loadTestVectorsExample2of3() {
+            // From TEST_VECTORS.md Section 2 (2-of-3)
+            const testVectorMnemonic = 'spin result brand ahead poet carpet unusual chronic denial festival toy autumn';
+            const testVectorCoefficients = [1, 2052, 1126, 2012, 710, 571, 146, 1728, 2000, 130, 122, 383];
+            
+            document.getElementById('seed-input').value = testVectorMnemonic.split(' ').join('\n');
+            document.getElementById('coefficients-input').value = testVectorCoefficients.join(', ');
+            document.getElementById('threshold-k').value = 2;
+            document.getElementById('total-n').value = 3;
+            
+            currentK = 2;
+            currentN = 3;
+            initializeShares();
+        }
+
+        function loadTestVectorsExample3of5() {
+            // Generated 3-of-5 example (Placeholder since not in TEST_VECTORS.md yet)
+            // Using same mnemonic for consistency
+            const testVectorMnemonic = 'spin result brand ahead poet carpet unusual chronic denial festival toy autumn';
+            
+            // Need 2 coefficients per word (k=3 => degree 2)
+            // 12 words * 2 coeffs = 24 coefficients
+            // Pairs of (a1, a2)
+            const testVectorCoefficients = [
+                // w1..w12
+                100, 200,   101, 201,   102, 202,
+                103, 203,   104, 204,   105, 205,
+                106, 206,   107, 207,   108, 208,
+                109, 209,   110, 210,   111, 211
+            ];
+            
+            document.getElementById('seed-input').value = testVectorMnemonic.split(' ').join('\n');
+            document.getElementById('coefficients-input').value = testVectorCoefficients.join(', ');
+            document.getElementById('threshold-k').value = 3;
+            document.getElementById('total-n').value = 5;
+            
+            currentK = 3;
+            currentN = 5;
+            initializeShares();
+        }
+        
+        function formatPolynomial(coeffs) {
+            return coeffs.map((c, i) => {
+                if (i === 0) return `${c}`;
+                if (i === 1) return `${c}x`;
+                return `${c}x^${i}`;
+            }).join(' + ');
+        }
+
+        function displayPolynomials(polynomials) {
+            if (!polynomials) return;
+            
+            const { word, rowCheck, globalCheck } = polynomials;
+            
+            // Display word polynomials
+            let wordText = '';
+            word.forEach((poly, i) => {
+                const wordNum = i + 1;
+                wordText += `f_w${wordNum}(x) = ${formatPolynomial(poly)}\n`;
+            });
+            document.getElementById('polynomial-words').value = wordText;
+            
+            // Display row checksum polynomials
+            let checksumText = '';
+            rowCheck.forEach((poly, i) => {
+                const rowNum = i + 1;
+                checksumText += `f_c${rowNum}(x) = ${formatPolynomial(poly)}\n`;
+            });
+            document.getElementById('polynomial-checksums').value = checksumText;
+            
+            // Display GIC polynomial
+            document.getElementById('polynomial-gic').value = 
+                `f_GIC_base(x) = ${formatPolynomial(globalCheck)}\n\n` +
+                `Note: Share value = f_GIC_base(x) + x\n` +
+                `This ensures share number is embedded in validation.`;
+        }
+        
         async function generateSeed(wordCount, format) {
             try {
                 const SS = window.SchiavinatoSharing;
@@ -722,9 +1059,6 @@
             try {
                 const SS = window.SchiavinatoSharing;
                 if (!SS) { return showModal('Error', 'Library not loaded.'); }
-                if (!bip39Wordlist.length && Array.isArray(SS?.englishWordlist)) {
-                    bip39Wordlist = SS.englishWordlist;
-                }
                 
                 const seedInput = document.getElementById('seed-input').value.trim();
                 if (!seedInput) { return showModal('Error', 'Please enter a BIP39 seed first'); }
@@ -735,9 +1069,48 @@
                 }
                 
                 const mnemonic = parsed.words.join(' ');
-                const shares = await SS.splitMnemonic(mnemonic, currentK, currentN);
+                
+                // Check if coefficients provided to determine mode
+                const coeffInput = document.getElementById('coefficients-input').value.trim();
+                let mode = 'production';
+                let coefficients = null;
+                
+                if (coeffInput) {
+                    mode = 'testvectors';
+                    // Parse coefficients
+                    coefficients = coeffInput.split(',').map(s => {
+                        const num = parseInt(s.trim());
+                        if (isNaN(num)) {
+                            throw new Error(`Invalid coefficient value: "${s.trim()}"`);
+                        }
+                        return num;
+                    });
+                    
+                    // Validate coefficient count (Client-side validation before calling split)
+                    const parsed = SS.parseInput(document.getElementById('seed-input').value.trim());
+                    const wordCount = parsed.words.length;
+                    const expected = wordCount * (currentK - 1);
+                    
+                    if (coefficients.length !== expected) {
+                        return showModal('Error', `Invalid number of coefficients.\n\nExpected: ${expected} values\n(for ${wordCount} words and threshold ${currentK})\n\nGot: ${coefficients.length} values`);
+                    }
+                }
+
+                // Call unified split function for validator
+                const result = await splitMnemonicForValidator(
+                    mnemonic, 
+                    currentK, 
+                    currentN, 
+                    mode,
+                    coefficients
+                );
+                
+                const shares = result.shares;
+                const polynomials = result.polynomials;
+                
                 currentShares = shares;
                 
+                // Display shares
                 for (let i = 0; i < shares.length; i++) {
                     const share = shares[i];
                     const shareNum = i + 1;
@@ -745,8 +1118,8 @@
                     const wordsArray = [];
                     const idsArray = [];
                     
-                    wordsArray.push(getWordOrId(share.globalChecksumVerificationShare));
-                    idsArray.push(share.globalChecksumVerificationShare);
+                    wordsArray.push(getWordOrId(share.globalIntegrityCheckShare));
+                    idsArray.push(share.globalIntegrityCheckShare);
                     
                     for (let w = 0; w < share.wordShares.length; w++) {
                         wordsArray.push(getWordOrId(share.wordShares[w]));
@@ -763,6 +1136,9 @@
                     document.getElementById(`share-${shareNum}-ids`).value = idsArray.join('\n');
                 }
                 
+                // Display polynomials if in TEST_VECTORS mode
+                displayPolynomials(polynomials);
+                
             } catch (error) {
                 showModal('Error', `Failed to create shares: ${error.message}`);
                 console.error(error);
@@ -770,11 +1146,14 @@
         }
         
         function getWordOrId(value) {
-            const isBip39Index = Number.isInteger(value) && value >= 0 && value < 2048;
-            if (isBip39Index && bip39Wordlist[value]) {
-                return bip39Wordlist[value];
+            const SS = window.SchiavinatoSharing;
+            // Use native 1-based lookup (no conversions)
+            try {
+                return SS.bip39IdToWord(value);
+            } catch {
+                // If lookup fails, return the value as string
+                return `${value}`;
             }
-            return `${value}`;
         }
 
         function breakShareBip39() {
@@ -832,7 +1211,7 @@
                     
                     const ids = idsText.split(/[\s,\n]+/).map(id => parseInt(id)).filter(id => !isNaN(id));
                     
-                    const globalChecksumVerificationShare = ids.shift();
+                    const globalIntegrityCheckShare = ids.shift();
                     const wordShares = [];
                     const checksumShares = [];
                     
@@ -844,7 +1223,7 @@
                         }
                     }
                     
-                    sharesToRecover.push({ shareNumber: shareNum, wordShares, checksumShares, globalChecksumVerificationShare });
+                    sharesToRecover.push({ shareNumber: shareNum, wordShares, checksumShares, globalIntegrityCheckShare });
                 }
                 
                 const wordCount = sharesToRecover[0].wordShares.length;
@@ -909,6 +1288,10 @@
         
         function clearCreateFields() {
             document.getElementById('seed-input').value = '';
+            document.getElementById('coefficients-input').value = '';
+            document.getElementById('polynomial-words').value = '';
+            document.getElementById('polynomial-checksums').value = '';
+            document.getElementById('polynomial-gic').value = '';
         }
         
         function clearSharesFields() {
