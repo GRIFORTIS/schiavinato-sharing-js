@@ -50,8 +50,9 @@ describe('Platform Fallback (Node.js Legacy)', () => {
     // proves the fallback logic executed successfully.
   });
 
-  it('should initialize successfully with Web Crypto (standard path)', async () => {
+  it.skipIf(!globalThis.crypto)('should initialize successfully with Web Crypto (standard path)', async () => {
     // 1. Ensure Web Crypto is present (standard Node 20+ env)
+    // Note: Skipped on Node 18.x where globalThis.crypto may be undefined
     expect(globalThis.crypto).toBeDefined();
 
     // 2. Import module
