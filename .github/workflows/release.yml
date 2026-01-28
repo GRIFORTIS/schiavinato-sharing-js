@@ -406,22 +406,99 @@ jobs:
           --armor --detach-sign schiavinato-sharing-${TAG}.tar.gz
         gpg --verify schiavinato-sharing-${TAG}.tar.gz.asc schiavinato-sharing-${TAG}.tar.gz
 
+    - name: Pack NPM tarball (for verification)
+      id: npm_pack
+      shell: bash
+      env:
+        HUSKY: '0'
+      run: |
+        set -euo pipefail
+        PACK_JSON="$(npm pack --json)"
+        echo "${PACK_JSON}" > npm-pack.json
+        node - <<'NODE'
+        const fs = require('fs');
+        const raw = fs.readFileSync('npm-pack.json', 'utf8');
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr) || !arr[0]) throw new Error('Unexpected npm pack JSON output');
+        const { shasum, integrity, filename } = arr[0];
+        if (!shasum || !integrity || !filename) throw new Error('npm pack JSON missing fields');
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `shasum=${shasum}\n`);
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `integrity=${integrity}\n`);
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `filename=${filename}\n`);
+        NODE
+        echo "Packed tarball: $(node -p "require('./npm-pack.json')[0].filename")"
+
     - name: Check if NPM version already published
       id: npm_version
       shell: bash
       run: |
         set -euo pipefail
         PKG="@grifortis/schiavinato-sharing"
-        VER="$(node -p "require('./package.json').version")"
-        if npm view "${PKG}@${VER}" version >/dev/null 2>&1; then
-          echo "already_published=true" >> "$GITHUB_OUTPUT"
-        else
+        VER="${{ steps.meta.outputs.pkg_version }}"
+        echo "Checking NPM for existing version: ${PKG}@${VER}"
+        # Golden-standard idempotency: if the version exists, verify the registry tarball matches
+        # the tarball we would publish from this tag. If it doesn't match, FAIL loudly.
+        PUBLISHED_JSON="$(npm view "${PKG}@${VER}" --json 2>/dev/null || true)"
+        if [ -z "${PUBLISHED_JSON}" ]; then
           echo "already_published=false" >> "$GITHUB_OUTPUT"
+          echo "Not found on NPM: ${PKG}@${VER}"
+          exit 0
         fi
+
+        export PUBLISHED_JSON
+        export WANT_SHASUM="${{ steps.npm_pack.outputs.shasum }}"
+        export WANT_INTEGRITY="${{ steps.npm_pack.outputs.integrity }}"
+        node - <<'NODE'
+        const publishedRaw = process.env.PUBLISHED_JSON;
+        const wantShasum = process.env.WANT_SHASUM;
+        const wantIntegrity = process.env.WANT_INTEGRITY;
+        if (!wantShasum || !wantIntegrity) throw new Error('Missing expected tarball hashes from npm pack');
+
+        let data = JSON.parse(publishedRaw);
+        if (Array.isArray(data)) data = data[0];
+        if (!data || typeof data !== 'object') throw new Error('Unexpected npm view JSON output');
+        const dist = data.dist || {};
+        const gotShasum = dist.shasum;
+        const gotIntegrity = dist.integrity;
+        if (!gotShasum || !gotIntegrity) {
+          throw new Error('npm view output missing dist.shasum/dist.integrity (cannot verify)');
+        }
+        if (gotShasum !== wantShasum || gotIntegrity !== wantIntegrity) {
+          console.error('NPM published tarball does NOT match the tarball produced from this tag.');
+          console.error(`Expected shasum:    ${wantShasum}`);
+          console.error(`Registry shasum:    ${gotShasum}`);
+          console.error(`Expected integrity: ${wantIntegrity}`);
+          console.error(`Registry integrity: ${gotIntegrity}`);
+          process.exit(1);
+        }
+        console.log('NPM published tarball matches local npm pack output.');
+        NODE
+
+        echo "already_published=true" >> "$GITHUB_OUTPUT"
+        echo "Already published on NPM and verified: ${PKG}@${VER}"
 
     - name: Publish main library to NPM
       if: steps.npm_version.outputs.already_published != 'true'
-      run: npm publish --provenance --access public
+      shell: bash
+      env:
+        HUSKY: '0'
+      run: |
+        set -u
+        set -o pipefail
+        LOG="$(mktemp)"
+        set +e
+        npm publish --provenance --access public 2>&1 | tee "$LOG"
+        STATUS="${PIPESTATUS[0]}"
+        set -e
+        if [ "$STATUS" -ne 0 ]; then
+          # Idempotency: treat "already published" as success so reruns don't fail.
+          if grep -Fq "You cannot publish over the previously published versions" "$LOG"; then
+            echo "NPM reports this version is already published. Continuing."
+            exit 0
+          fi
+          echo "npm publish failed (see log above)" >&2
+          exit "$STATUS"
+        fi
 
     - name: Upload signed artifacts to release
       uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
