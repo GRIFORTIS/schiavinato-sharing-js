@@ -17,6 +17,7 @@
 
 import { sha256 } from '@noble/hashes/sha256';
 import { wordToBip39Id } from './lookup.js';
+import { constantTimeStringEqual } from '../utils/security.js';
 
 /**
  * Validates a BIP39 mnemonic by verifying its checksum.
@@ -72,8 +73,8 @@ export function validateBip39Mnemonic(mnemonic: string): boolean {
       .padStart(8, '0')
       .slice(0, checksumBits);
     
-    // Verify checksum matches
-    return expectedChecksum === checksumBitsStr;
+    // Verify checksum matches (constant-time compare to reduce timing side channels)
+    return constantTimeStringEqual(expectedChecksum, checksumBitsStr);
   } catch {
     // If any word lookup fails or other error, mnemonic is invalid
     return false;
