@@ -97,27 +97,30 @@ jobs:
         TAG="${{ steps.meta.outputs.tag_norm }}"
         cd dist
         
-        echo "# SHA256 Checksums - @grifortis/schiavinato-sharing" > ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
-        echo "Version: ${TAG}" >> ../CHECKSUMS-LIBRARY.txt
-        echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
+        {
+          echo "# SHA256 Checksums - @grifortis/schiavinato-sharing"
+          echo ""
+          echo "Version: ${TAG}"
+          echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo ""
+          echo "## Main Package Files"
+          echo ""
+          sha256sum index.js index.mjs index.d.ts index.d.mts
+          echo ""
+          echo "## Browser Bundle"
+          echo ""
+        } > ../CHECKSUMS-LIBRARY.txt
         
-        echo "## Main Package Files" >> ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
-        sha256sum index.js index.mjs index.d.ts index.d.mts >> ../CHECKSUMS-LIBRARY.txt
-        
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
-        echo "## Browser Bundle" >> ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
         cd browser
         sha256sum index.global.js >> ../../CHECKSUMS-LIBRARY.txt
         
-        echo "" >> ../../CHECKSUMS-LIBRARY.txt
-        echo "## Verification" >> ../../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../../CHECKSUMS-LIBRARY.txt
-        echo "To verify files, run:" >> ../../CHECKSUMS-LIBRARY.txt
-        echo "  sha256sum -c CHECKSUMS-LIBRARY.txt" >> ../../CHECKSUMS-LIBRARY.txt
+        {
+          echo ""
+          echo "## Verification"
+          echo ""
+          echo "To verify files, run:"
+          echo "  sha256sum -c CHECKSUMS-LIBRARY.txt"
+        } >> ../../CHECKSUMS-LIBRARY.txt
         
         cd ../..
         echo "=== Library Checksums Generated ==="
@@ -129,21 +132,21 @@ jobs:
         TAG="${{ steps.meta.outputs.tag_norm }}"
         cd validator/dist
         
-        echo "# SHA256 Checksums - @grifortis/schiavinato-validator" > ../CHECKSUMS-VALIDATOR.txt
-        echo "" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "Version: ${TAG}" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "## Validator HTML" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "" >> ../CHECKSUMS-VALIDATOR.txt
-        
-        sha256sum schiavinato-validator-${TAG}.html >> ../CHECKSUMS-VALIDATOR.txt
-        
-        echo "" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "## Verification" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "To verify files, run:" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "  sha256sum -c CHECKSUMS-VALIDATOR.txt" >> ../CHECKSUMS-VALIDATOR.txt
+        {
+          echo "# SHA256 Checksums - @grifortis/schiavinato-validator"
+          echo ""
+          echo "Version: ${TAG}"
+          echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo ""
+          echo "## Validator HTML"
+          echo ""
+          sha256sum schiavinato-validator-${TAG}.html
+          echo ""
+          echo "## Verification"
+          echo ""
+          echo "To verify files, run:"
+          echo "  sha256sum -c CHECKSUMS-VALIDATOR.txt"
+        } > ../CHECKSUMS-VALIDATOR.txt
         
         cd ..
         echo "=== Validator Checksums Generated ==="
@@ -325,17 +328,19 @@ jobs:
         set -euo pipefail
         TAG="${{ steps.meta.outputs.tag_norm }}"
         cd dist
-        echo "# SHA256 Checksums - @grifortis/schiavinato-sharing" > ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
-        echo "Version: ${TAG}" >> ../CHECKSUMS-LIBRARY.txt
-        echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
-        echo "## Main Package Files" >> ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
-        sha256sum index.js index.mjs index.d.ts index.d.mts >> ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
-        echo "## Browser Bundle" >> ../CHECKSUMS-LIBRARY.txt
-        echo "" >> ../CHECKSUMS-LIBRARY.txt
+        {
+          echo "# SHA256 Checksums - @grifortis/schiavinato-sharing"
+          echo ""
+          echo "Version: ${TAG}"
+          echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo ""
+          echo "## Main Package Files"
+          echo ""
+          sha256sum index.js index.mjs index.d.ts index.d.mts
+          echo ""
+          echo "## Browser Bundle"
+          echo ""
+        } > ../CHECKSUMS-LIBRARY.txt
         cd browser
         sha256sum index.global.js >> ../../CHECKSUMS-LIBRARY.txt
         cd ../..
@@ -345,14 +350,16 @@ jobs:
         set -euo pipefail
         TAG="${{ steps.meta.outputs.tag_norm }}"
         cd validator/dist
-        echo "# SHA256 Checksums - @grifortis/schiavinato-validator" > ../CHECKSUMS-VALIDATOR.txt
-        echo "" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "Version: ${TAG}" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "## Validator HTML" >> ../CHECKSUMS-VALIDATOR.txt
-        echo "" >> ../CHECKSUMS-VALIDATOR.txt
-        sha256sum schiavinato-validator-${TAG}.html >> ../CHECKSUMS-VALIDATOR.txt
+        {
+          echo "# SHA256 Checksums - @grifortis/schiavinato-validator"
+          echo ""
+          echo "Version: ${TAG}"
+          echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo ""
+          echo "## Validator HTML"
+          echo ""
+          sha256sum schiavinato-validator-${TAG}.html
+        } > ../CHECKSUMS-VALIDATOR.txt
         cd ../..
 
     - name: Sign library checksums
@@ -417,7 +424,7 @@ jobs:
         # Capture *all* output and extract the JSON array robustly.
         PACK_OUT="$(npm pack --json 2>&1)"
         echo "${PACK_OUT}" > npm-pack.raw.txt
-        node - <<'NODE'
+        PACK_FILENAME="$(node - <<'NODE'
         const fs = require('fs');
         const raw = fs.readFileSync('npm-pack.raw.txt', 'utf8');
         const start = raw.indexOf('[');
@@ -433,8 +440,10 @@ jobs:
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `shasum=${shasum}\n`);
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `integrity=${integrity}\n`);
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `filename=${filename}\n`);
+        console.log(filename);
         NODE
-        echo "Packed tarball: ${{ steps.npm_pack.outputs.filename }}"
+        )"
+        echo "Packed tarball: ${PACK_FILENAME}"
 
     - name: Check if NPM version already published
       id: npm_version
