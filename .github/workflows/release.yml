@@ -413,12 +413,20 @@ jobs:
         HUSKY: '0'
       run: |
         set -euo pipefail
-        PACK_JSON="$(npm pack --json)"
-        echo "${PACK_JSON}" > npm-pack.json
+        # `npm pack --json` can be polluted by lifecycle scripts (e.g. husky) writing to stdout.
+        # Capture *all* output and extract the JSON array robustly.
+        PACK_OUT="$(npm pack --json 2>&1)"
+        echo "${PACK_OUT}" > npm-pack.raw.txt
         node - <<'NODE'
         const fs = require('fs');
-        const raw = fs.readFileSync('npm-pack.json', 'utf8');
-        const arr = JSON.parse(raw);
+        const raw = fs.readFileSync('npm-pack.raw.txt', 'utf8');
+        const start = raw.indexOf('[');
+        const end = raw.lastIndexOf(']');
+        if (start === -1 || end === -1 || end < start) {
+          throw new Error('Could not locate JSON array in npm pack output');
+        }
+        const json = raw.slice(start, end + 1);
+        const arr = JSON.parse(json);
         if (!Array.isArray(arr) || !arr[0]) throw new Error('Unexpected npm pack JSON output');
         const { shasum, integrity, filename } = arr[0];
         if (!shasum || !integrity || !filename) throw new Error('npm pack JSON missing fields');
@@ -426,7 +434,7 @@ jobs:
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `integrity=${integrity}\n`);
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `filename=${filename}\n`);
         NODE
-        echo "Packed tarball: $(node -p "require('./npm-pack.json')[0].filename")"
+        echo "Packed tarball: ${{ steps.npm_pack.outputs.filename }}"
 
     - name: Check if NPM version already published
       id: npm_version
