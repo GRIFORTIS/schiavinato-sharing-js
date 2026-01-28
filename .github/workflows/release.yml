@@ -192,7 +192,7 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     
-    - name: Comment on release with checksums and GPG info
+    - name: Update release with checksums and GPG info
       if: github.event_name == 'release'
       uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
       with:
@@ -200,44 +200,49 @@ jobs:
           const fs = require('fs');
           const checksums = fs.readFileSync('CHECKSUMS.txt', 'utf8');
           
-          const body = `## 🔐 Security Verification
+          const verificationInfo = `
+
+## 🔐 Security Verification
+
+### SHA256 Checksums
+
+\`\`\`
+${checksums}
+\`\`\`
+
+**Verify checksums:**
+\`\`\`bash
+sha256sum -c CHECKSUMS.txt
+\`\`\`
+
+### GPG Signatures
+
+All release artifacts are signed with GRIFORTIS GPG key.
+
+**Import public key:**
+\`\`\`bash
+curl -fsSL https://raw.githubusercontent.com/GRIFORTIS/schiavinato-sharing-spec/main/GRIFORTIS-PGP-PUBLIC-KEY.asc | gpg --import
+\`\`\`
+
+**Verify signatures:**
+\`\`\`bash
+# Verify checksums
+gpg --verify CHECKSUMS.txt.asc CHECKSUMS.txt
+
+# Verify tarball
+gpg --verify grifortis-schiavinato-sharing-${context.payload.release.tag_name}.tar.gz.asc grifortis-schiavinato-sharing-${context.payload.release.tag_name}.tar.gz
+\`\`\`
+
+**Key fingerprint:** \`4C FE 62 48 C5 7F 15 DF\`
+`;
           
-          ### SHA256 Checksums
+          // Append to existing release body
+          const currentBody = context.payload.release.body || '';
           
-          \`\`\`
-          ${checksums}
-          \`\`\`
-          
-          **Verify checksums:**
-          \`\`\`bash
-          sha256sum -c CHECKSUMS.txt
-          \`\`\`
-          
-          ### GPG Signatures
-          
-          All release artifacts are signed with GRIFORTIS GPG key.
-          
-          **Import public key:**
-          \`\`\`bash
-          curl -fsSL https://raw.githubusercontent.com/GRIFORTIS/schiavinato-sharing-spec/main/GRIFORTIS-PGP-PUBLIC-KEY.asc | gpg --import
-          \`\`\`
-          
-          **Verify signatures:**
-          \`\`\`bash
-          # Verify checksums
-          gpg --verify CHECKSUMS.txt.asc CHECKSUMS.txt
-          
-          # Verify tarball
-          gpg --verify grifortis-schiavinato-sharing-${context.payload.release.tag_name}.tar.gz.asc grifortis-schiavinato-sharing-${context.payload.release.tag_name}.tar.gz
-          \`\`\`
-          
-          **Key fingerprint:** \`4C FE 62 48 C5 7F 15 DF\`
-          `;
-          
-          github.rest.issues.createComment({
+          await github.rest.repos.updateRelease({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            issue_number: context.payload.release.id,
-            body: body
+            release_id: context.payload.release.id,
+            body: currentBody + verificationInfo
           });
 
