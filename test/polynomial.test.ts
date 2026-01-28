@@ -108,12 +108,12 @@ describe('Polynomial Operations', () => {
     it('should handle all test vector polynomials correctly', () => {
       // From TEST_VECTORS.md - test all word polynomials
       const testPolynomials = [
-        { poly: [1679, 456], x1: 82, x2: 538, x3: 994 },
-        { poly: [1470, 102], x1: 1572, x2: 1674, x3: 1776 },
-        { poly: [216, 1126], x1: 1342, x2: 415, x3: 1541 },
-        { poly: [41, 1003], x1: 1044, x2: 2047, x3: 997 },
-        { poly: [1337, 914], x1: 198, x2: 1112, x3: 2026 },
-        { poly: [278, 571], x1: 849, x2: 1420, x3: 1991 },
+        { poly: [1680, 456], x1: 83, x2: 539, x3: 995 },
+        { poly: [1471, 102], x1: 1573, x2: 1675, x3: 1777 },
+        { poly: [217, 1126], x1: 1343, x2: 416, x3: 1542 },
+        { poly: [42, 1003], x1: 1045, x2: 2048, x3: 998 },
+        { poly: [1338, 914], x1: 199, x2: 1113, x3: 2027 },
+        { poly: [279, 571], x1: 850, x2: 1421, x3: 1992 },
       ];
 
       for (const { poly, x1, x2, x3 } of testPolynomials) {

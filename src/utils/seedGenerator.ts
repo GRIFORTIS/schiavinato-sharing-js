@@ -3,13 +3,17 @@
  * 
  * This module provides utilities for generating valid BIP39 mnemonics
  * plus helper conversions used by the validator tool.
+ * 
+ * v0.5.0: Uses native BIP39 implementation with 1-based indexing throughout.
  */
 
-import { generateMnemonic } from '@scure/bip39';
-import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
+import { generateBip39Mnemonic } from '../bip39/generate.js';
+import { wordToBip39Id, bip39IdToWord } from '../bip39/index.js';
 
 /**
  * Generates a cryptographically valid BIP39 mnemonic with proper checksum.
+ * 
+ * Uses native BIP39 implementation with 1-based indexing.
  * 
  * @param wordCount - Number of words (12 or 24)
  * @returns A valid BIP39 mnemonic phrase
@@ -27,74 +31,82 @@ export function generateValidMnemonic(wordCount: 12 | 24): string {
     throw new Error('Word count must be 12 or 24');
   }
   
-  // Calculate entropy bits: 12 words = 128 bits, 24 words = 256 bits
-  const entropyBits = wordCount === 12 ? 128 : 256;
-  
-  // Convert entropy to mnemonic (includes checksum calculation)
-  // generateMnemonic() from @scure/bip39 generates its own random entropy
-  return generateMnemonic(englishWordlist, entropyBits);
+  // Use native BIP39 generation
+  return generateBip39Mnemonic(wordCount);
 }
 
 /**
- * Converts a BIP39 mnemonic phrase to an array of word indices.
+ * Converts a BIP39 mnemonic phrase to an array of 1-based word IDs.
+ * 
+ * Uses native O(1) lookup with no array scanning or conversions.
  * 
  * @param mnemonic - The mnemonic phrase (space-separated words)
- * @param wordlist - Optional custom wordlist (defaults to English)
- * @returns Array of indices (0-2047)
+ * @returns Array of 1-based BIP39 IDs (1-2048)
  * @throws {Error} If any word is not found in the wordlist
  * 
  * @example
  * const indices = mnemonicToIndices('abandon abandon abandon...');
- * // Returns [0, 0, 0, ...]
+ * // Returns [1, 1, 1, ...]
+ * 
+ * const indices = mnemonicToIndices('spin result brand...');
+ * // Returns [1680, 1471, 217, ...]
  */
-export function mnemonicToIndices(mnemonic: string, wordlist: string[] = englishWordlist): number[] {
+export function mnemonicToIndices(mnemonic: string): number[] {
   const words = mnemonic.trim().toLowerCase().split(/\s+/);
   
-  return words.map((word, index) => {
-    const wordIndex = wordlist.indexOf(word);
-    if (wordIndex === -1) {
-      throw new Error(`Word "${word}" at position ${index + 1} is not in the BIP39 wordlist`);
+  return words.map((word, position) => {
+    try {
+      return wordToBip39Id(word);
+    } catch (error) {
+      throw new Error(`Word "${word}" at position ${position + 1} is not in the BIP39 wordlist`);
     }
-    return wordIndex;
   });
 }
 
 /**
- * Converts an array of word indices to a BIP39 mnemonic phrase.
+ * Converts an array of 1-based word IDs to a BIP39 mnemonic phrase.
  * 
- * @param indices - Array of BIP39 word indices (0-2047)
- * @param wordlist - Optional custom wordlist (defaults to English)
+ * Uses native O(1) lookup with no array indexing or conversions.
+ * 
+ * @param indices - Array of 1-based BIP39 IDs (1-2048)
  * @returns The mnemonic phrase
- * @throws {Error} If any index is out of range
+ * @throws {Error} If any ID is out of range
  * 
  * @example
- * const mnemonic = indicesToMnemonic([0, 0, 0, ...]);
+ * const mnemonic = indicesToMnemonic([1, 1, 1, ...]);
  * // Returns 'abandon abandon abandon...'
+ * 
+ * const mnemonic = indicesToMnemonic([1680, 1471, 217, ...]);
+ * // Returns 'spin result brand...'
  */
-export function indicesToMnemonic(indices: number[], wordlist: string[] = englishWordlist): string {
-  return indices.map((index, position) => {
-    if (index < 0 || index >= wordlist.length) {
-      throw new Error(`Index ${index} at position ${position + 1} is out of range (must be 0-${wordlist.length - 1})`);
+export function indicesToMnemonic(indices: number[]): string {
+  return indices.map((id, position) => {
+    if (id < 1 || id > 2048) {
+      throw new Error(`ID ${id} at position ${position + 1} is out of range (must be 1-2048)`);
     }
-    return wordlist[index];
+    return bip39IdToWord(id);
   }).join(' ');
 }
 
 /**
  * Parses input text that may contain words or indices, with various separators.
  * 
+ * Uses native 1-based BIP39 lookups with no array conversions.
+ * 
  * @param input - Input text with words or indices separated by spaces, commas, or newlines
- * @param wordlist - Optional custom wordlist (defaults to English)
  * @returns Object with parsed data: { words: string[], indices: number[], type: 'words' | 'indices' | 'mixed' }
  * 
  * @example
  * parseInput('abandon, abandon, abandon')
- * // Returns { words: ['abandon', 'abandon', 'abandon'], indices: [0, 0, 0], type: 'words' }
+ * // Returns { words: ['abandon', 'abandon', 'abandon'], indices: [1, 1, 1], type: 'words' }
  * 
- * parseInput('0 0 0')
- * // Returns { words: ['abandon', 'abandon', 'abandon'], indices: [0, 0, 0], type: 'indices' }
+ * parseInput('1 1 1')
+ * // Returns { words: ['abandon', 'abandon', 'abandon'], indices: [1, 1, 1], type: 'indices' }
+ * 
+ * parseInput('1680 1471 217')
+ * // Returns { words: ['spin', 'result', 'brand'], indices: [1680, 1471, 217], type: 'indices' }
  */
-export function parseInput(input: string, wordlist: string[] = englishWordlist): {
+export function parseInput(input: string): {
   words: string[];
   indices: number[];
   type: 'words' | 'indices' | 'mixed';
@@ -112,29 +124,30 @@ export function parseInput(input: string, wordlist: string[] = englishWordlist):
   for (const token of tokens) {
     // Check if it's a number
     if (/^\d+$/.test(token)) {
-      const index = parseInt(token, 10);
-      if (index >= 0 && index <= 2047) {
-        // It's a BIP39 index
-        indices.push(index);
-        words.push(wordlist[index]);
+      const id = parseInt(token, 10);
+      if (id >= 1 && id <= 2048) {
+        // It's a 1-based BIP39 ID
+        indices.push(id);
+        words.push(bip39IdToWord(id));
         hasIndices = true;
-      } else if (index >= 2048 && index <= 2052) {
-        // It's a share value (for validator UI)
-        indices.push(index);
-        words.push(`[${index}]`); // Placeholder for share values
+      } else if (id === 0 || (id >= 2049 && id <= 2052)) {
+        // It's a share value (for validator UI): 0 or 2049-2052
+        indices.push(id);
+        words.push(`[${id}]`); // Placeholder for share values
         hasIndices = true;
       } else {
-        throw new Error(`Index ${index} is out of range`);
+        throw new Error(`ID ${id} is out of range (valid: 1-2048 for BIP39 words, or 0, 2049-2052 for share values)`);
       }
     } else {
-      // It's a word
-      const wordIndex = wordlist.indexOf(token);
-      if (wordIndex === -1) {
+      // It's a word - use native lookup
+      try {
+        const id = wordToBip39Id(token);
+        words.push(token);
+        indices.push(id);
+        hasWords = true;
+      } catch {
         throw new Error(`Word "${token}" is not in the BIP39 wordlist`);
       }
-      words.push(token);
-      indices.push(wordIndex);
-      hasWords = true;
     }
   }
   

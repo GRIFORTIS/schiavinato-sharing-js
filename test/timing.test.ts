@@ -28,7 +28,10 @@ function runTrials(fn: () => void, iterations: number, trials: number): number {
   return median(results);
 }
 
-describe('Timing harness (manual)', () => {
+// This is a *manual* side-channel smoke test. It is inherently noisy and can be
+// flaky on CI (shared runners) and some laptops (power management, background load).
+// GitHub Actions sets CI=true by default, so we skip it there.
+describe.skipIf(!!process.env.CI)('Timing harness (manual)', () => {
   it('constantTimeEqual shows similar timing for equal vs different values', () => {
     const iterations = 80000;
     const trials = 7; // reduce jitter sensitivity

@@ -51,8 +51,9 @@ We welcome:
 
 ### Prerequisites
 
-- **Node.js**: 18+ or 20+ LTS
+- **Node.js**: 24+ (We recommend using [fnm](https://github.com/Schniz/fnm) to manage versions)
 - **npm**: 9+ (comes with Node.js)
+- **Tip**: Run `fnm use` in the project root to automatically select the correct version from `.nvmrc`.
 - **Git**: Latest stable version
 
 ### Clone and Install

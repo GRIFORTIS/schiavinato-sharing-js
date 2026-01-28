@@ -68,8 +68,7 @@
   },
   "homepage": "https://github.com/GRIFORTIS/schiavinato-sharing-js#readme",
   "dependencies": {
-    "@noble/hashes": "^1.3.3",
-    "@scure/bip39": "^1.2.1"
+    "@noble/hashes": "^1.3.3"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

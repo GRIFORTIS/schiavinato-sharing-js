@@ -5,11 +5,11 @@
  * Schiavinato Sharing over GF(2053).
  */
 
-import { validateMnemonic as validateBip39 } from '@scure/bip39';
-import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
+import { validateBip39Mnemonic } from '../bip39/validation.js';
+import { bip39IdToWord } from '../bip39/lookup.js';
 import { mod } from '../core/field.js';
 import { lagrangeInterpolateAtZero } from '../core/lagrange.js';
-import { computeRowChecks, computeGlobalChecksum } from './checksums.js';
+import { computeRowChecks, computeGlobalIntegrityCheck } from './checksums.js';
 import { 
   ensureSupportedWordCount, 
   normalizeShareValue, 
@@ -33,7 +33,7 @@ import type { ShareData, RecoveryResult, RecoverOptions } from '../types.js';
  * 3. Uses Lagrange interpolation to recover checksums
  * 4. v0.4.0: Validates dual-path checksums (Path A vs Path B)
  * 5. Validates row checksums
- * 6. Validates global checksum
+ * 6. Validates Global Integrity Check (GIC)
  * 7. Validates BIP39 checksum (if previous checks pass)
  * 
  * v0.4.0 Change: Implements dual-path checksum validation during recovery.
@@ -43,14 +43,14 @@ import type { ShareData, RecoveryResult, RecoverOptions } from '../types.js';
  * 
  * @param shares - Array of share objects (minimum 2, typically k shares)
  * @param wordCount - Expected word count of original mnemonic (12 or 24)
- * @param options - Optional configuration (custom wordlist, validation settings)
+ * @param options - Optional configuration (validation settings)
  * @returns Recovery report with mnemonic and error details
  * 
  * @example
  * const result = await recoverMnemonic(
  *   [
- *     { shareNumber: 1, wordShares: [...], checksumShares: [...], globalChecksumVerificationShare: 1819 },
- *     { shareNumber: 2, wordShares: [...], checksumShares: [...], globalChecksumVerificationShare: 1484 }
+ *     { shareNumber: 1, wordShares: [...], checksumShares: [...], globalIntegrityCheckShare: 1819 },
+ *     { shareNumber: 2, wordShares: [...], checksumShares: [...], globalIntegrityCheckShare: 1484 }
  *   ],
  *   12
  * );
@@ -66,7 +66,6 @@ export async function recoverMnemonic(
   wordCount: number,
   options: RecoverOptions = {}
 ): Promise<RecoveryResult> {
-  const wordlist = options.wordlist || englishWordlist;
   const strictValidation = options.strictValidation !== false;
   
   const report: RecoveryResult = {
@@ -86,7 +85,7 @@ export async function recoverMnemonic(
   // Declare sensitive variables outside try block for cleanup in finally
   let recoveredWords: number[] = [];
   let recoveredChecks: number[] = [];
-  let recoveredGlobalChecksum = 0;
+  let recoveredGlobalIntegrityCheck = 0;
   
   try {
     // 1. Pre-flight checks for input validity
@@ -134,22 +133,22 @@ export async function recoverMnemonic(
       recoveredChecks.push(lagrangeInterpolateAtZero(points));
     }
     
-    const globalChecksumPoints = shares.map((share) => ({
+    const globalIntegrityCheckPoints = shares.map((share) => ({
       x: mod(share.shareNumber),
       y: normalizeShareValue(
-        share.globalChecksumVerificationShare, 
-        `Global Checksum verification (share ${share.shareNumber})`
+        share.globalIntegrityCheckShare, 
+        `Global Integrity Check (GIC) verification (share ${share.shareNumber})`
       )
     }));
-    recoveredGlobalChecksum = lagrangeInterpolateAtZero(globalChecksumPoints);
+    recoveredGlobalIntegrityCheck = lagrangeInterpolateAtZero(globalIntegrityCheckPoints);
     
     // 3. Perform internal Schiavinato validations with dual-path checking (v0.4.0)
     // Path A: Recompute checksums from recovered words (direct computation)
     const recomputedChecks = computeRowChecks(recoveredWords);
-    const recomputedGlobalChecksum = computeGlobalChecksum(recoveredWords);
+    const recomputedGlobalIntegrityCheck = computeGlobalIntegrityCheck(recoveredWords);
     
     // Path B: Interpolated checksum values (polynomial evaluation at x=0)
-    // recoveredChecks and recoveredGlobalChecksum come from Lagrange interpolation
+    // recoveredChecks and recoveredGlobalIntegrityCheck come from Lagrange interpolation
     
     // First, validate Path A vs Path B (detects bit flips/hardware faults)
     for (let row = 0; row < rowCount; row++) {
@@ -160,7 +159,7 @@ export async function recoverMnemonic(
     }
     
     // Use constant-time comparison to prevent timing attacks
-    if (!constantTimeEqual(recoveredGlobalChecksum, recomputedGlobalChecksum)) {
+    if (!constantTimeEqual(recoveredGlobalIntegrityCheck, recomputedGlobalIntegrityCheck)) {
       report.errors.globalPathMismatch = true;
     }
     
@@ -172,7 +171,7 @@ export async function recoverMnemonic(
       }
     }
     
-    if (!constantTimeEqual(recoveredGlobalChecksum, recomputedGlobalChecksum)) {
+    if (!constantTimeEqual(recoveredGlobalIntegrityCheck, recomputedGlobalIntegrityCheck)) {
       report.errors.global = true;
     }
     
@@ -181,22 +180,22 @@ export async function recoverMnemonic(
       // Validate word indices are in BIP39 range
       for (let i = 0; i < recoveredWords.length; i++) {
         const value = recoveredWords[i];
-        if (value < 0 || value >= 2048) {
+        if (value < 1 || value > 2048) {
           report.errors.generic = 
-            `Recovered word #${i + 1} ("${value}") is outside the BIP39 range (0–2047). ` +
+            `Recovered word #${i + 1} ("${value}") is outside the BIP39 range (1–2048). ` +
             `Cannot form a valid mnemonic.`;
           return report;
         }
       }
       
-      // Convert indices to words
-      const mnemonic = recoveredWords.map((index) => wordlist[index]).join(' ');
+      // Convert 1-based IDs to words using native lookup (no conversions)
+      const mnemonic = recoveredWords.map((id) => bip39IdToWord(id)).join(' ');
       report.mnemonic = mnemonic;
       
-      // Validate BIP39 checksum
+      // Validate BIP39 checksum using native implementation
       if (strictValidation) {
         try {
-          if (!validateBip39(mnemonic, wordlist)) {
+          if (!validateBip39Mnemonic(mnemonic)) {
             report.errors.bip39 = true;
           }
         } catch (bip39Error) {
@@ -221,7 +220,7 @@ export async function recoverMnemonic(
     // Security: Clean up sensitive data from memory
     secureWipeArray(recoveredWords);
     secureWipeArray(recoveredChecks);
-    recoveredGlobalChecksum = secureWipeNumber(recoveredGlobalChecksum);
+    recoveredGlobalIntegrityCheck = secureWipeNumber(recoveredGlobalIntegrityCheck);
   }
   
   return report;

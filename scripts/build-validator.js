@@ -38,8 +38,20 @@ console.log(`✓ Updated validator/package.json to version ${version}`);
 // Read HTML file
 let html = fs.readFileSync(htmlPath, 'utf8');
 
-// Inject version into HTML (replace existing version in footer and header)
-// Footer version
+// Inject version into HTML (replace existing version markers)
+// 1) Header comment (top-of-file)
+html = html.replace(
+  /Schiavinato Sharing Validator v[\d.]+/g,
+  `Schiavinato Sharing Validator v${version}`
+);
+
+// 2) Design system marker (purely informational)
+html = html.replace(
+  /DESIGN SYSTEM \(v[\d.]+\)/g,
+  `DESIGN SYSTEM (v${version})`
+);
+
+// 3) Footer version (authoritative)
 html = html.replace(
   /<p><strong>GRIFORTIS Schiavinato Sharing - JS Library Validator v[\d.]+<\/strong>/,
   `<p><strong>GRIFORTIS Schiavinato Sharing - JS Library Validator v${version}</strong>`
@@ -79,11 +91,15 @@ console.log(`✓ Created standalone: validator/dist/schiavinato-validator-v${ver
 
 // Verify version consistency
 console.log('\n🔍 Verifying version consistency...');
-const htmlVersion = html.match(/v([\d.]+)/);
-if (htmlVersion && htmlVersion[1] === version) {
+const footerVersion = html.match(
+  /GRIFORTIS Schiavinato Sharing - JS Library Validator v([\d.]+)<\/strong>/
+);
+if (footerVersion && footerVersion[1] === version) {
   console.log(`✓ Version ${version} verified in HTML`);
 } else {
-  console.error(`✗ Version mismatch! Expected ${version}, found ${htmlVersion ? htmlVersion[1] : 'none'}`);
+  console.error(
+    `✗ Version mismatch! Expected ${version}, found ${footerVersion ? footerVersion[1] : 'none'}`
+  );
   process.exit(1);
 }
 

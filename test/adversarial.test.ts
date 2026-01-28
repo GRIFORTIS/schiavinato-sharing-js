@@ -4,7 +4,6 @@
 
 import { describe, it, expect } from 'vitest';
 import { recoverMnemonic, splitMnemonic } from '../src/index';
-import { englishWordlist } from '@scure/bip39/wordlists/english';
 import { indicesToMnemonic } from '../src/utils/seedGenerator';
 
 describe('Adversarial / negative tests', () => {

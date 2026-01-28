@@ -186,7 +186,7 @@ npm run build
 
 - **Vitest Documentation**: https://vitest.dev/
 - **Test Vectors**: [TEST_VECTORS.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/TEST_VECTORS.md)
-- **Specification**: [WHITEPAPER.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md)
+- **Specification**: [Whitepaper PDF](https://github.com/GRIFORTIS/schiavinato-sharing-spec/releases/latest/download/WHITEPAPER.pdf) ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.tex))
 
 ---
 

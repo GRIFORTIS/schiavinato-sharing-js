@@ -9,9 +9,9 @@ import { describe, it, expect } from 'vitest';
 import { 
   sumPolynomials, 
   computeRowCheckPolynomials, 
-  computeGlobalCheckPolynomial,
+  computeGlobalIntegrityCheckPolynomial,
   computeRowChecks,
-  computeGlobalChecksum
+  computeGlobalIntegrityCheck
 } from '../src/schiavinato/checksums';
 import { evaluatePolynomial } from '../src/core/polynomial';
 import { splitMnemonic, recoverMnemonic } from '../src/index';
@@ -105,13 +105,13 @@ describe('Polynomial Checksum Functions (v0.4.0)', () => {
     });
   });
 
-  describe('computeGlobalCheckPolynomial', () => {
-    it('should create global checksum polynomial', () => {
+  describe('computeGlobalIntegrityCheckPolynomial', () => {
+    it('should create Global Integrity Check (GIC) polynomial', () => {
       const wordPolynomials = [
         [1, 2], [3, 4], [5, 6]
       ];
       
-      const globalPoly = computeGlobalCheckPolynomial(wordPolynomials);
+      const globalPoly = computeGlobalIntegrityCheckPolynomial(wordPolynomials);
       
       // Sum of all: [1+3+5, 2+4+6] = [9, 12]
       expect(globalPoly).toEqual([9, 12]);
@@ -124,7 +124,7 @@ describe('Polynomial Checksum Functions (v0.4.0)', () => {
         [100, 100]
       ];
       
-      const globalPoly = computeGlobalCheckPolynomial(wordPolynomials);
+      const globalPoly = computeGlobalIntegrityCheckPolynomial(wordPolynomials);
       
       // (2000 + 2000 + 100) mod 2053 = 4100 mod 2053 = 2047
       expect(globalPoly).toEqual([2047, 2047]);
@@ -140,7 +140,7 @@ describe('Polynomial Checksum Functions (v0.4.0)', () => {
       ];
       
       const rowPolys = computeRowCheckPolynomials(wordPolynomials);
-      const globalPoly = computeGlobalCheckPolynomial(wordPolynomials);
+      const globalPoly = computeGlobalIntegrityCheckPolynomial(wordPolynomials);
       
       // Test at multiple share numbers
       for (let shareNum = 1; shareNum <= 5; shareNum++) {
@@ -149,7 +149,7 @@ describe('Polynomial Checksum Functions (v0.4.0)', () => {
         
         // Path A: Compute checksums from word shares
         const pathARows = computeRowChecks(wordShares);
-        const pathAGlobal = computeGlobalChecksum(wordShares);
+        const pathAGlobal = computeGlobalIntegrityCheck(wordShares);
         
         // Path B: Evaluate checksum polynomials
         const pathBRows = rowPolys.map(p => evaluatePolynomial(p, shareNum));
@@ -170,14 +170,14 @@ describe('Polynomial Checksum Functions (v0.4.0)', () => {
       ];
       
       const rowPolys = computeRowCheckPolynomials(wordPolynomials);
-      const globalPoly = computeGlobalCheckPolynomial(wordPolynomials);
+      const globalPoly = computeGlobalIntegrityCheckPolynomial(wordPolynomials);
       
       // Test at multiple share numbers
       for (let shareNum = 1; shareNum <= 5; shareNum++) {
         const wordShares = wordPolynomials.map(p => evaluatePolynomial(p, shareNum));
         
         const pathARows = computeRowChecks(wordShares);
-        const pathAGlobal = computeGlobalChecksum(wordShares);
+        const pathAGlobal = computeGlobalIntegrityCheck(wordShares);
         
         const pathBRows = rowPolys.map(p => evaluatePolynomial(p, shareNum));
         const pathBGlobal = evaluatePolynomial(globalPoly, shareNum);
@@ -259,13 +259,13 @@ describe('Polynomial Checksum Functions (v0.4.0)', () => {
       expect(hasError).toBe(true);
     });
 
-    it('should detect checksum errors with corrupted global checksum', async () => {
+    it('should detect checksum errors with corrupted Global Integrity Check (GIC)', async () => {
       const shares = await splitMnemonic(testMnemonic, 2, 3);
       
-      // Corrupt the global checksum share with a valid but incorrect value
+      // Corrupt the Global Integrity Check (GIC) share with a valid but incorrect value
       const corruptedShare = {
         ...shares[0],
-        globalChecksumVerificationShare: (shares[0].globalChecksumVerificationShare + 100) % 2053
+        globalIntegrityCheckShare: (shares[0].globalIntegrityCheckShare + 100) % 2053
       };
       
       const result = await recoverMnemonic([corruptedShare, shares[1]], 12);

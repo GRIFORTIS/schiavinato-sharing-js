@@ -12,6 +12,23 @@ Response time: Within 48 hours
 
 ---
 
+## v0.5.0 Security Improvements
+
+**Native BIP39 Implementation:**
+- Removed @scure/bip39 external dependency, reducing attack surface
+- Native implementation using only @noble/hashes (already required for checksums)
+- Embedded wordlist eliminates external wordlist loading risks
+- O(1) lookups prevent timing-based word inference attacks
+- Fewer dependencies = smaller audit scope = faster security review cycles
+
+**1-Based Architecture:**
+- Eliminated all +1/-1 conversion operations (source of systematic bugs)
+- Mathematically correct: polynomials use actual BIP39 IDs (1680 for "spin", not 1679)
+- Cross-implementation compatible: shares work with Python implementation
+- Manual recovery calculations match computerized results exactly
+
+---
+
 ## Package Integrity Verification
 
 ### SHA256 Checksums (Automatic)
@@ -36,6 +53,35 @@ npm audit signatures
 ```
 
 Verifies package was built by GitHub Actions from correct source.
+
+### GPG Signatures (v0.5.1+)
+
+All releases are signed with GRIFORTIS GPG key.
+
+**Import public key:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/GRIFORTIS/schiavinato-sharing-js/main/GRIFORTIS-PGP-PUBLIC-KEY.asc | gpg --import
+```
+
+Or download from this repository: [GRIFORTIS-PGP-PUBLIC-KEY.asc](GRIFORTIS-PGP-PUBLIC-KEY.asc)
+
+**Verify release signatures:**
+```bash
+# Download release files
+curl -fsSL https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/download/v0.5.1/CHECKSUMS.txt -o CHECKSUMS.txt
+curl -fsSL https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/download/v0.5.1/CHECKSUMS.txt.asc -o CHECKSUMS.txt.asc
+
+# Verify signature
+gpg --verify CHECKSUMS.txt.asc CHECKSUMS.txt
+```
+
+**Expected output:**
+```
+gpg: Good signature from "GRIFORTIS <security@grifortis.com>"
+Primary key fingerprint: 7921 FD56 9450 8DA4 020E  671F 4CFE 6248 C57F 15DF
+```
+
+**Key fingerprint:** `4C FE 62 48 C5 7F 15 DF`
 
 ---
 
@@ -205,7 +251,7 @@ Scanned by: GitHub Dependabot, npm audit
 - **Status**: Experimental - use at your own risk
 - **Recommendation**: Independent audit recommended before production use with significant assets
 
-See [WHITEPAPER.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md) for full security analysis.
+See the [whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/releases/latest/download/WHITEPAPER.pdf) ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.tex)) for full security analysis.
 
 ---
 

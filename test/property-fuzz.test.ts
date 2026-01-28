@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { splitMnemonic, recoverMnemonic } from '../src/index';
-import { computeRowChecks, computeGlobalChecksum } from '../src/schiavinato/checksums';
+import { computeRowChecks, computeGlobalIntegrityCheck } from '../src/schiavinato/checksums';
 
 // Known valid BIP39 mnemonics (12 words) from test vectors
 const validMnemonics = [
@@ -54,12 +54,15 @@ describe('Property-based tests (bounded)', () => {
           // We check that checksum polynomials evaluated at x_j equal sums of those wordShares.
           for (const share of shares) {
             const rowSums = computeRowChecks(share.wordShares);
-            const globalSum = computeGlobalChecksum(share.wordShares);
+            const globalSum = computeGlobalIntegrityCheck(share.wordShares);
 
             // Build pseudo-polynomials: since we don't have coefficients, we validate equality directly
             // across all shares: each checksum share must equal the sum for that share index.
             expect(share.checksumShares).toEqual(rowSums);
-            expect(share.globalChecksumVerificationShare).toBe(globalSum);
+            
+            // GIC includes share number: GIC.SX = (sum + X) mod 2053 (per TEST_VECTORS Section 3.3)
+            const expectedGIC = (globalSum + share.shareNumber) % 2053;
+            expect(share.globalIntegrityCheckShare).toBe(expectedGIC);
           }
 
           return true;

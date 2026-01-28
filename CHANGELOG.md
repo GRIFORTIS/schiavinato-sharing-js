@@ -7,7 +7,96 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.0] - 2025-12-09
+## [0.4.0] - 2026-01-28
+
+### Added - Core Features
+- **Native 1-based BIP39 implementation** - Removed @scure/bip39 dependency
+  - All BIP39 operations now use native GRIFORTIS implementation
+  - BIP39 wordlist embedded in library (2048 words from specification)
+  - O(1) word-to-ID and ID-to-word lookups (faster than array scanning)
+  - Eliminated all +1/-1 conversion operations throughout codebase
+- **BIP39 indexing is now 1-based (1-2048) throughout entire architecture**
+  - "abandon" = ID 1, "zoo" = ID 2048, "spin" = ID 1680 (native, not converted)
+  - Aligns with human-centric design and manual calculation requirements
+  - Eliminates off-by-one bugs from conversions
+- Native BIP39 module (`src/bip39/`):
+  - `BIP39_WORDLIST` - Embedded 2048-word English wordlist
+  - `wordToBip39Id()` - O(1) word to 1-based ID conversion
+  - `bip39IdToWord()` - O(1) ID to word conversion  
+  - `isBip39Id()` - Check if value is valid BIP39 ID (1-2048)
+  - `isValidShareId()` - Check if value is valid share ID (0, 1-2048, 2049-2052)
+  - `validateBip39Mnemonic()` - Native checksum validation
+  - `generateBip39Mnemonic()` - Native mnemonic generation
+- Support for GF(2053) edge cases in ID-to-word conversion:
+  - ID 0 → `[0-out-of-range]`, IDs 2049-2052 → `[NNNN-out-of-range]`
+- **Dual-path checksum validation** to detect bit flips and hardware faults
+  - Path A: Direct computation (sum of word shares mod 2053)
+  - Path B: Polynomial-based (sum polynomial coefficients, then evaluate)
+  - Both paths must agree, providing redundant validation
+- New polynomial checksum functions in public API:
+  - `sumPolynomials()` - Sum polynomial coefficients modulo 2053
+  - `computeRowCheckPolynomials()` - Create row checksum polynomials
+  - `computeGlobalIntegrityCheckPolynomial()` - Create GIC polynomial
+- Enhanced error reporting in `RecoveryResult`:
+  - `errors.rowPathMismatch` - Array of row indices where paths disagree
+  - `errors.globalPathMismatch` - Boolean indicating global checksum path disagreement
+
+### Changed - API
+- **API simplification** (removing unused wordlist parameters):
+  - `validateBip39Mnemonic(mnemonic)` - removed wordlist parameter (English only)
+  - `mnemonicToIndices(mnemonic)` - removed wordlist parameter
+  - `indicesToMnemonic(indices)` - removed wordlist parameter
+  - `parseInput(input)` - removed wordlist parameter
+- **Terminology standardization**: "Global Checksum" → "Global Integrity Check (GIC)"
+  - Property: `globalChecksumVerificationShare` → `globalIntegrityCheckShare`
+  - Function: `computeGlobalChecksum()` → `computeGlobalIntegrityCheck()`
+  - Function: `computeGlobalCheckPolynomial()` → `computeGlobalIntegrityCheckPolynomial()`
+- `splitMnemonic()` validates both checksum paths during generation
+- `recoverMnemonic()` validates both checksum paths during recovery
+
+### Security - Enhancements
+- **GPG signing added** - All releases now GPG-signed for maximum security
+  - CHECKSUMS.txt and CHECKSUMS.json GPG-signed
+  - Release tarballs GPG-signed
+  - Validator HTML GPG-signed
+  - GRIFORTIS PGP public key included in repository
+  - Verification instructions in README and SECURITY.md
+- **CodeQL security analysis** added to CI pipeline
+- **Gitleaks secret scanning** enhanced with license key
+- Improved fault detection: Dual-path validation catches bit flips and memory corruption
+- Reduced attack surface: One less external dependency (@scure/bip39 removed)
+- Native BIP39 validation using @noble/hashes (already a dependency)
+- All checksum comparisons use constant-time equality (timing attack prevention)
+
+### Fixed
+- Eliminated off-by-one conversion bugs throughout codebase
+- Cross-implementation compatibility: JS shares recoverable by Python implementation
+- Manual recovery calculations now match computerized results
+- TEST_VECTORS.md validation passes completely
+- Polynomial construction uses correct 1-based secrets
+- Linting: Removed unused variable warnings
+
+### Performance
+- O(1) map lookups vs O(n) array scanning for BIP39 operations
+- Smaller bundle: ~50KB reduction from removing @scure/bip39
+- Faster BIP39 validation and conversion
+
+### Documentation
+- Whitepaper publication alignment across all docs
+- GPG verification instructions in README and SECURITY.md
+- Validator security warnings enhanced (dev tool only, not for production)
+- Validator README corrected (removed false air-gap claim)
+- Comprehensive test suite for dual-path checksums and BIP39 operations
+- Enhanced JSDoc comments throughout
+
+### Testing
+- Added comprehensive test coverage for 1-based indexing
+- Added test vectors for exact cross-implementation validation
+- Added fault injection tests
+- Added platform fallback tests
+- Enhanced timing tests with tighter bounds
+
+## [0.3.0] - 2025-12-06
 
 ### Added
 - **Dual-path checksum validation** to detect bit flips and hardware faults during share generation and recovery

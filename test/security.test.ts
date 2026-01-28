@@ -13,6 +13,8 @@ import {
   wipeString
 } from '../src/utils/security.js';
 
+const isCI = !!process.env.CI;
+
 describe('Security Utilities', () => {
   describe('constantTimeEqual', () => {
     it('should return true for equal values', () => {
@@ -35,34 +37,36 @@ describe('Security Utilities', () => {
       expect(constantTimeEqual(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)).toBe(true);
     });
 
-    it.skip('should take constant time regardless of values (basic test)', () => {
-      // NOTE: This test is skipped because JavaScript timing is too variable in CI environments
-      // to reliably test constant-time behavior. The implementation uses bitwise XOR which
-      // is inherently constant-time at the CPU level, but JavaScript's timing APIs and
-      // runtime optimizations make empirical timing tests unreliable.
-      // 
-      // For production security verification, use specialized timing analysis tools.
-      
-      const iterations = 10000;
-      
-      // Test equal values
-      const startEqual = performance.now();
-      for (let i = 0; i < iterations; i++) {
+    it.skipIf(isCI)('should take constant time regardless of values (basic test)', () => {
+      // Warm up the JIT compiler more thoroughly
+      for (let i = 0; i < 100000; i++) {
         constantTimeEqual(1234, 1234);
       }
-      const timeEqual = performance.now() - startEqual;
       
-      // Test unequal values (different in first bit)
-      const startUnequal = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        constantTimeEqual(1234, 1235);
+      const buckets = 100;
+      const iterationsPerBucket = 1000000;
+      let totalTimeEqual = 0;
+      let totalTimeUnequal = 0;
+      
+      for (let b = 0; b < buckets; b++) {
+        // Interleave Case A and Case B to cancel out OS noise/throttling
+        const startEqual = performance.now();
+        for (let i = 0; i < iterationsPerBucket; i++) {
+          constantTimeEqual(1234, 1234);
+        }
+        totalTimeEqual += performance.now() - startEqual;
+        
+        const startUnequal = performance.now();
+        for (let i = 0; i < iterationsPerBucket; i++) {
+          constantTimeEqual(1234, 1235);
+        }
+        totalTimeUnequal += performance.now() - startUnequal;
       }
-      const timeUnequal = performance.now() - startUnequal;
       
-      // The times should be very close (within 50% margin for JS variability)
-      const ratio = timeEqual / timeUnequal;
-      expect(ratio).toBeGreaterThan(0.5);
-      expect(ratio).toBeLessThan(2.0);
+      // Tightened ratio: 0.95 to 1.05 (5% margin) due to interleaved stability
+      const ratio = totalTimeEqual / totalTimeUnequal;
+      expect(ratio).toBeGreaterThan(0.95);
+      expect(ratio).toBeLessThan(1.05);
     });
   });
 
@@ -84,37 +88,40 @@ describe('Security Utilities', () => {
       expect(constantTimeStringEqual('', 'nonempty')).toBe(false);
     });
 
-    it.skip('should take constant time for same-length strings (basic test)', () => {
-      // NOTE: This test is skipped because JavaScript timing is too variable in CI environments
-      // to reliably test constant-time behavior. The implementation iterates through all
-      // characters without early exit, which is constant-time by design, but JavaScript's
-      // timing APIs and runtime optimizations make empirical timing tests unreliable.
-      // 
-      // For production security verification, use specialized timing analysis tools.
-      
-      const iterations = 10000;
+    it.skipIf(isCI)('should take constant time for same-length strings (basic test)', () => {
       const str1 = '01101100110011001100110011001100';
       const str2Equal = '01101100110011001100110011001100';
       const str2DiffLast = '01101100110011001100110011001101'; // Different in last char
       
-      // Test equal strings
-      const startEqual = performance.now();
-      for (let i = 0; i < iterations; i++) {
+      // Warm up the JIT compiler more thoroughly
+      for (let i = 0; i < 100000; i++) {
         constantTimeStringEqual(str1, str2Equal);
       }
-      const timeEqual = performance.now() - startEqual;
       
-      // Test unequal strings (different in last character)
-      const startUnequal = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        constantTimeStringEqual(str1, str2DiffLast);
+      const buckets = 100;
+      const iterationsPerBucket = 1000000;
+      let totalTimeEqual = 0;
+      let totalTimeUnequal = 0;
+      
+      for (let b = 0; b < buckets; b++) {
+        // Interleave Case A and Case B to cancel out OS noise/throttling
+        const startEqual = performance.now();
+        for (let i = 0; i < iterationsPerBucket; i++) {
+          constantTimeStringEqual(str1, str2Equal);
+        }
+        totalTimeEqual += performance.now() - startEqual;
+        
+        const startUnequal = performance.now();
+        for (let i = 0; i < iterationsPerBucket; i++) {
+          constantTimeStringEqual(str1, str2DiffLast);
+        }
+        totalTimeUnequal += performance.now() - startUnequal;
       }
-      const timeUnequal = performance.now() - startUnequal;
       
-      // The times should be very close
-      const ratio = timeEqual / timeUnequal;
-      expect(ratio).toBeGreaterThan(0.5);
-      expect(ratio).toBeLessThan(2.0);
+      // Tightened ratio: 0.95 to 1.05 (5% margin) due to interleaved stability
+      const ratio = totalTimeEqual / totalTimeUnequal;
+      expect(ratio).toBeGreaterThan(0.95);
+      expect(ratio).toBeLessThan(1.05);
     });
   });
 
@@ -144,7 +151,7 @@ describe('Security Utilities', () => {
     });
 
     it('should handle arrays with mixed values', () => {
-      const arr = [0, 1, -1, 1000, 2047, -2053];
+      const arr = [0, 1, -1, 1000, 2048, -2053];
       secureWipeArray(arr);
       expect(arr).toEqual([0, 0, 0, 0, 0, 0]);
     });
@@ -252,13 +259,13 @@ describe('Security Utilities', () => {
       expect(constantTimeEqual(validChecksum, recomputedInvalid)).toBe(false);
     });
 
-    it('should validate global checksum in constant time', () => {
-      const recoveredGlobalChecksum = 12345;
+    it('should validate Global Integrity Check (GIC) in constant time', () => {
+      const recoveredGlobalIntegrityCheck = 12345;
       const recomputedValid = 12345;
       const recomputedInvalid = 12346;
 
-      expect(constantTimeEqual(recoveredGlobalChecksum, recomputedValid)).toBe(true);
-      expect(constantTimeEqual(recoveredGlobalChecksum, recomputedInvalid)).toBe(false);
+      expect(constantTimeEqual(recoveredGlobalIntegrityCheck, recomputedValid)).toBe(true);
+      expect(constantTimeEqual(recoveredGlobalIntegrityCheck, recomputedInvalid)).toBe(false);
     });
 
     it('should validate BIP39 checksums in constant time', () => {

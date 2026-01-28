@@ -194,8 +194,10 @@ const recovered = recoverMnemonic(
 
 ## 🎯 Features
 
+- ✅ **Native 1-based BIP39 implementation** (v0.5.0) - no external wordlist dependencies
+- ✅ **O(1) word/ID lookups** - faster than traditional array-based wordlists
 - ✅ **Full TypeScript support** with comprehensive type definitions
-- ✅ **Zero dependencies** (except for BIP39 and crypto utilities)
+- ✅ **Minimal dependencies** - only @noble/hashes for cryptographic primitives
 - ✅ **Node.js and browser support** (CommonJS + ESM + IIFE)
 - ✅ **Built-in validation** for mnemonics and shares
 - ✅ **Dual-path checksum verification** to detect bit flips and hardware faults (v0.4.0)
@@ -255,7 +257,7 @@ This library implements the Schiavinato Sharing specification:
 🔗 **[Specification Repository](https://github.com/GRIFORTIS/schiavinato-sharing-spec)**
 
 Key documents:
-- [Whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md) – Complete mathematical description
+- [Whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/releases/latest/download/WHITEPAPER.pdf) ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.tex)) – Complete mathematical description
 - [Test Vectors](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/TEST_VECTORS.md) – Validation data
 - [Reference Implementation](https://github.com/GRIFORTIS/schiavinato-sharing-spec/tree/main/reference-implementation) – HTML tool
 
@@ -284,7 +286,7 @@ Both paths must produce identical results. Any disagreement indicates:
 
 This redundancy provides an additional layer of validation beyond standard cryptographic checksums.
 
-See the [whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.md) for mathematical details.
+See the [whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/releases/latest/download/WHITEPAPER.pdf) ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.tex)) for mathematical details.
 
 ---
 
@@ -500,7 +502,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history.
 ## 🔗 Related Projects
 
 - **[Specification](https://github.com/GRIFORTIS/schiavinato-sharing-spec)** – Whitepaper and reference implementation
-- **[Python Library](https://github.com/GRIFORTIS/schiavinato-sharing-py)** – Python implementation (coming soon)
+- **[Python Library](https://github.com/GRIFORTIS/schiavinato-sharing-py)** – Python implementation (in development)
 - **[GRIFORTIS](https://github.com/GRIFORTIS)** – Organization homepage
 
 ---
@@ -510,7 +512,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history.
 This implementation is based on:
 - Shamir, A. (1979). "How to Share a Secret"
 - BIP39: Mnemonic code for generating deterministic keys
-- The Schiavinato Sharing specification by Renato Schiavinato Lopez
+- The Schiavinato Sharing specification by **Renato Schiavinato Lopez**, creator of Schiavinato Sharing and founder of GRIFORTIS
 
 ---
 

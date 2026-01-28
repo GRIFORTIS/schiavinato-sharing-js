@@ -29,7 +29,7 @@ describe('Validation utilities', () => {
       wordShares: new Array(12).fill(1),
       checksumShares: new Array(12 / WORDS_PER_ROW).fill(1),
       // @ts-expect-error intentional omission
-      globalChecksumVerificationShare: undefined
+      globalIntegrityCheckShare: undefined
     };
     expect(() => validateSharesForRecovery([bad], 12)).toThrow('missing a valid share number');
   });
@@ -39,7 +39,7 @@ describe('Validation utilities', () => {
       shareNumber: 1,
       wordShares: new Array(12).fill(1),
       checksumShares: [], // wrong length
-      globalChecksumVerificationShare: 1
+      globalIntegrityCheckShare: 1
     };
     expect(() => validateSharesForRecovery([bad], 12)).toThrow('does not contain 4 checksum values');
   });
@@ -49,7 +49,7 @@ describe('Validation utilities', () => {
       shareNumber: 1,
       wordShares: new Array(12).fill(1),
       checksumShares: new Array(4).fill(1),
-      globalChecksumVerificationShare: 1
+      globalIntegrityCheckShare: 1
     };
     const s2 = { ...s1 };
     expect(() => ensureShareNumbersDistinct([s1, s2])).toThrow('Duplicate share numbers detected.');

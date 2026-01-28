@@ -5,26 +5,30 @@
  * Schiavinato Sharing over GF(2053).
  */
 
-import { validateMnemonic as validateBip39 } from '@scure/bip39';
-import { wordlist as englishWordlist } from '@scure/bip39/wordlists/english';
+import { validateBip39Mnemonic } from '../bip39/validation.js';
+import { wordToBip39Id } from '../bip39/lookup.js';
 import { FIELD_PRIME, modAdd } from '../core/field.js';
 import { randomPolynomial, evaluatePolynomial } from '../core/polynomial.js';
 import { sanitizeMnemonic, ensureSupportedWordCount, WORDS_PER_ROW } from '../utils/validation.js';
 import { secureWipeArray } from '../utils/security.js';
-import { computeRowCheckPolynomials, computeGlobalCheckPolynomial } from './checksums.js';
+import { computeRowCheckPolynomials, computeGlobalIntegrityCheckPolynomial } from './checksums.js';
 import type { Share, SplitOptions } from '../types.js';
 
 /**
  * Splits a BIP39 mnemonic into n Shamir shares with threshold k.
  * 
- * Implements the Schiavinato Sharing scheme (v0.4.0):
+ * Implements the Schiavinato Sharing scheme (v0.5.0):
  * 1. Validates the BIP39 mnemonic
- * 2. Converts words to indices (0-2047)
+ * 2. Converts words to 1-based indices (1-2048) - native implementation
  * 3. Creates degree-(k-1) polynomials for word secrets
  * 4. Evaluates word polynomials at x = 1, 2, ..., n
  * 5. Computes checksum shares using dual-path validation:
  *    - Path A: Sum of word shares (mod 2053) - direct computation
  *    - Path B: Polynomial-based - sum polynomial coefficients, then evaluate
+ * 
+ * v0.5.0 Change: Native 1-based BIP39 implementation. All word-to-ID conversions
+ * use O(1) lookup functions with no +1/-1 operations. This eliminates off-by-one
+ * bugs and ensures share values match TEST_VECTORS.md exactly.
  * 
  * v0.4.0 Change: Implements dual-path checksum validation to detect bit flips
  * and hardware faults. Checksum polynomials are created by summing word polynomial
@@ -33,13 +37,13 @@ import type { Share, SplitOptions } from '../types.js';
  * 
  * v0.3.0 Change: Checksum shares are now computed deterministically during share
  * generation, enabling integrity validation during manual splitting. Row checksum
- * share = sum of 3 word shares in that row. Global checksum share = sum of all
+ * share = sum of 3 word shares in that row. Global Integrity Check (GIC) share = sum of all
  * word shares. This maintains all LSSS security properties while adding verifiability.
  * 
  * @param mnemonic - The BIP39 mnemonic phrase to split
  * @param k - Threshold: number of shares required for recovery (minimum 2)
  * @param n - Total number of shares to generate
- * @param options - Optional configuration (custom wordlist)
+ * @param options - Optional configuration (reserved for future use)
  * @returns Array of n share objects
  * @throws {Error} If inputs are invalid or mnemonic fails validation
  * 
@@ -51,7 +55,7 @@ import type { Share, SplitOptions } from '../types.js';
  * );
  * 
  * // Returns 3 shares, any 2 can recover the original mnemonic
- * // shares[0] = { shareNumber: 1, wordShares: [...], checksumShares: [...], globalChecksumVerificationShare: ... }
+ * // shares[0] = { shareNumber: 1, wordShares: [...], checksumShares: [...], globalIntegrityCheckShare: ... }
  * // shares[1] = { shareNumber: 2, ... }
  * // shares[2] = { shareNumber: 3, ... }
  */
@@ -59,7 +63,7 @@ export async function splitMnemonic(
   mnemonic: string,
   k: number,
   n: number,
-  options: SplitOptions = {}
+  _options: SplitOptions = {}
 ): Promise<Share[]> {
   // Validate parameters
   if (!Number.isInteger(k) || !Number.isInteger(n)) {
@@ -80,10 +84,9 @@ export async function splitMnemonic(
   
   // Normalize and validate mnemonic
   const normalizedMnemonic = sanitizeMnemonic(mnemonic);
-  const wordlist = options.wordlist || englishWordlist;
   
-  // Validate BIP39 checksum
-  if (!validateBip39(normalizedMnemonic, wordlist)) {
+  // Validate BIP39 checksum using native implementation
+  if (!validateBip39Mnemonic(normalizedMnemonic)) {
     throw new Error('Invalid BIP39 mnemonic: checksum verification failed.');
   }
   
@@ -93,13 +96,9 @@ export async function splitMnemonic(
   
   ensureSupportedWordCount(wordCount);
   
-  // Convert words to indices
+  // Convert words to 1-based BIP39 IDs using native lookup (no conversions needed)
   const wordIndices = words.map((word) => {
-    const index = wordlist.indexOf(word);
-    if (index === -1) {
-      throw new Error(`Unknown mnemonic word: "${word}".`);
-    }
-    return index;
+    return wordToBip39Id(word);
   });
   
   // Create polynomials (degree = k - 1)
@@ -112,7 +111,7 @@ export async function splitMnemonic(
   // v0.4.0: Compute checksum polynomials (Path B)
   // These are created by summing word polynomial coefficients
   const rowCheckPolynomials = computeRowCheckPolynomials(wordPolynomials);
-  const globalCheckPolynomial = computeGlobalCheckPolynomial(wordPolynomials);
+  const globalIntegrityCheckPolynomial = computeGlobalIntegrityCheckPolynomial(wordPolynomials);
   
   // Generate shares by evaluating polynomials at x = 1, 2, ..., n
   const shares: Share[] = [];
@@ -123,7 +122,7 @@ export async function splitMnemonic(
         shareNumber: shareIndex,
         wordShares: [],
         checksumShares: [],
-        globalChecksumVerificationShare: 0
+        globalIntegrityCheckShare: 0
       };
       
       // Evaluate word polynomials
@@ -163,23 +162,25 @@ export async function splitMnemonic(
         share.checksumShares.push(checksumPathA);
       }
       
-      // Calculate global checksum share using both paths
+      // Calculate Global Integrity Check (GIC) share using both paths
       // Path A: Sum of all word shares
       const globalPathA = share.wordShares.reduce((acc, val) => modAdd(acc, val), 0);
       
-      // Path B: Evaluate global checksum polynomial
-      const globalPathB = evaluatePolynomial(globalCheckPolynomial, shareIndex);
+      // Path B: Evaluate Global Integrity Check (GIC) polynomial
+      const globalPathB = evaluatePolynomial(globalIntegrityCheckPolynomial, shareIndex);
       
       // Validate paths agree
       if (globalPathA !== globalPathB) {
         throw new Error(
-          `Global checksum path mismatch at share ${shareIndex}: ` +
+          `Global Integrity Check (GIC) path mismatch at share ${shareIndex}: ` +
           `Path A (sum)=${globalPathA}, Path B (polynomial)=${globalPathB}. ` +
           `This indicates a hardware fault or memory corruption during share generation.`
         );
       }
       
-      share.globalChecksumVerificationShare = globalPathA;
+      // Add share number to GIC (ensures share number is embedded in validation)
+      // See TEST_VECTORS.md Section 3.3 for details
+      share.globalIntegrityCheckShare = modAdd(globalPathA, shareIndex);
       
       shares.push(share);
     }
@@ -190,7 +191,7 @@ export async function splitMnemonic(
     secureWipeArray(wordIndices);
     wordPolynomials.forEach(poly => secureWipeArray(poly));
     rowCheckPolynomials.forEach(poly => secureWipeArray(poly));
-    secureWipeArray(globalCheckPolynomial);
+    secureWipeArray(globalIntegrityCheckPolynomial);
   }
 }
 

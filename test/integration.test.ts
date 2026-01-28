@@ -8,25 +8,27 @@ import { splitMnemonic, recoverMnemonic } from '../src/index';
 describe('Integration Tests - TEST_VECTORS.md', () => {
   const testMnemonic = 'spin result brand ahead poet carpet unusual chronic denial festival toy autumn';
   
-  // Expected shares from TEST_VECTORS.md (v0.3.0 - deterministic checksums)
-  const expectedShares = {
+  // Expected shares from TEST_VECTORS.md Section 4 (2-of-3 with specific coefficients)
+  // These values match exactly when using coefficients: [1, 2052, 1126, 2012, 2763, 571, 146, 1728, 2000, 130, 122, 383]
+  // Note: Production shares will differ (random coefficients). These are for TEST_VECTORS validation only.
+  const expectedTestVectorShares = {
     1: {
       shareNumber: 1,
-      wordShares: [82, 1572, 1342, 1044, 198, 849, 272, 679, 142, 811, 1965, 508],
-      checksumShares: [943, 38, 1093, 1231],
-      globalChecksumVerificationShare: 1252
+      wordShares: [1681, 1470, 1343, 1, 2048, 850, 0, 2052, 415, 812, 1966, 509],
+      checksumShares: [388, 846, 414, 1234],
+      globalIntegrityCheckShare: 830
     },
     2: {
       shareNumber: 2,
-      wordShares: [538, 1674, 415, 2047, 1112, 1420, 691, 1035, 1870, 941, 34, 891],
-      checksumShares: [574, 473, 1543, 1866],
-      globalChecksumVerificationShare: 350
+      wordShares: [1682, 1469, 416, 2013, 705, 1421, 146, 1727, 362, 942, 35, 892],
+      checksumShares: [1514, 33, 182, 1869],
+      globalIntegrityCheckShare: 1547
     },
     3: {
       shareNumber: 3,
-      wordShares: [994, 1776, 1541, 997, 2026, 1991, 1110, 1391, 1545, 1071, 156, 1274],
-      checksumShares: [205, 908, 1993, 448],
-      globalChecksumVerificationShare: 1501
+      wordShares: [1683, 1468, 1542, 1972, 1415, 1992, 292, 1402, 309, 1072, 157, 1275],
+      checksumShares: [587, 1273, 2003, 451],
+      globalIntegrityCheckShare: 211
     }
   };
 
@@ -76,7 +78,7 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
   describe('Recovery with test vector shares', () => {
     it('should recover from shares {1, 2}', async () => {
       const result = await recoverMnemonic(
-        [expectedShares[1], expectedShares[2]],
+        [expectedTestVectorShares[1], expectedTestVectorShares[2]],
         12
       );
       
@@ -86,7 +88,7 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
 
     it('should recover from shares {1, 3}', async () => {
       const result = await recoverMnemonic(
-        [expectedShares[1], expectedShares[3]],
+        [expectedTestVectorShares[1], expectedTestVectorShares[3]],
         12
       );
       
@@ -96,7 +98,7 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
 
     it('should recover from shares {2, 3}', async () => {
       const result = await recoverMnemonic(
-        [expectedShares[2], expectedShares[3]],
+        [expectedTestVectorShares[2], expectedTestVectorShares[3]],
         12
       );
       
@@ -106,7 +108,7 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
 
     it('should recover from all 3 shares', async () => {
       const result = await recoverMnemonic(
-        [expectedShares[1], expectedShares[2], expectedShares[3]],
+        [expectedTestVectorShares[1], expectedTestVectorShares[2], expectedTestVectorShares[3]],
         12
       );
       
@@ -118,13 +120,13 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
   describe('Error detection', () => {
     it('should detect corrupted word share', async () => {
       const corruptedShare = {
-        ...expectedShares[1],
-        wordShares: [...expectedShares[1].wordShares]
+        ...expectedTestVectorShares[1],
+        wordShares: [...expectedTestVectorShares[1].wordShares]
       };
       corruptedShare.wordShares[0] = 999; // Corrupt first word
       
       const result = await recoverMnemonic(
-        [corruptedShare, expectedShares[2]],
+        [corruptedShare, expectedTestVectorShares[2]],
         12
       );
       
@@ -137,7 +139,7 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
     });
 
     it('should fail with insufficient shares', async () => {
-      const result = await recoverMnemonic([expectedShares[1]], 12);
+      const result = await recoverMnemonic([expectedTestVectorShares[1]], 12);
       
       expect(result.success).toBe(false);
       expect(result.errors.generic).toContain('At least two shares');
@@ -145,7 +147,7 @@ describe('Integration Tests - TEST_VECTORS.md', () => {
 
     it('should fail with duplicate share numbers', async () => {
       const result = await recoverMnemonic(
-        [expectedShares[1], expectedShares[1]],
+        [expectedTestVectorShares[1], expectedTestVectorShares[1]],
         12
       );
       

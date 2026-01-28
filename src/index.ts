@@ -1,6 +1,3 @@
-import { validateMnemonic as validateMnemonicInternal } from '@scure/bip39';
-import { wordlist as englishWordlistInternal } from '@scure/bip39/wordlists/english';
-
 /**
  * Schiavinato Sharing - JavaScript/TypeScript Library
  * 
@@ -9,6 +6,9 @@ import { wordlist as englishWordlistInternal } from '@scure/bip39/wordlists/engl
  * This library implements the Schiavinato Sharing scheme, which extends
  * Shamir's Secret Sharing with additional checksums for error detection
  * and manual recovery capability.
+ * 
+ * v0.5.0: Native 1-based BIP39 implementation with embedded wordlist.
+ * All word-to-ID conversions use O(1) lookups with no +1/-1 operations.
  * 
  * @packageDocumentation
  */
@@ -42,10 +42,10 @@ export {
 // Export checksum functions (for verification)
 export { 
   computeRowChecks,
-  computeGlobalChecksum,
+  computeGlobalIntegrityCheck,
   sumPolynomials,
   computeRowCheckPolynomials,
-  computeGlobalCheckPolynomial
+  computeGlobalIntegrityCheckPolynomial
 } from './schiavinato/checksums.js';
 
 // Export utility functions
@@ -91,15 +91,21 @@ export type {
   Point
 } from './types.js';
 
-// Export BIP39 helpers with sensible defaults
-export function validateBip39Mnemonic(mnemonic: string, wordlist = englishWordlistInternal): boolean {
-  return validateMnemonicInternal(mnemonic, wordlist);
-}
+// Export native BIP39 module
+export {
+  BIP39_WORDLIST as englishWordlist,
+  wordToBip39Id,
+  bip39IdToWord,
+  isBip39Id,
+  isValidShareId,
+  validateBip39Mnemonic as validateBip39MnemonicNative
+} from './bip39/index.js';
 
-export { englishWordlistInternal as englishWordlist };
+// Export BIP39 validation with simple API
+export { validateBip39Mnemonic } from './bip39/validation.js';
 
 // Library version
-export const VERSION = '0.4.0';
+export const VERSION = '0.5.0';
 
 /**
  * Main entry point namespace for backward compatibility with HTML tool.

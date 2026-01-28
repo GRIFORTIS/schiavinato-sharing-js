@@ -1,7 +1,7 @@
 /**
  * Schiavinato Sharing Checksum Functions
  * 
- * This module implements the per-row and global checksums that are
+ * This module implements the per-row checksums and Global Integrity Check (GIC) that are
  * unique to the Schiavinato Sharing scheme.
  * 
  * v0.4.0: Implements dual-path checksum validation (Path A and Path B)
@@ -22,17 +22,17 @@ import { WORDS_PER_ROW } from '../utils/validation.js';
  * These row checksums provide error detection for individual rows and
  * can be used to identify which specific shares are corrupt during recovery.
  * 
- * @param wordIndices - Array of BIP39 word indices (0-2047)
+ * @param wordIndices - Array of BIP39 word indices (1-2048)
  * @returns Array of row checksums in GF(2053)
  * 
  * @example
- * // For 12-word mnemonic with indices [1679, 1470, 216, 41, 1337, 278, ...]
- * computeRowChecks([1679, 1470, 216, 41, 1337, 278, 1906, 323, 467, 681, 1843, 125])
- * // Returns [1312, 1656, 643, 596]
- * // where 1312 = (1679 + 1470 + 216) mod 2053
- * //       1656 = (41 + 1337 + 278) mod 2053
- * //       643 = (1906 + 323 + 467) mod 2053
- * //       596 = (681 + 1843 + 125) mod 2053
+ * // For 12-word mnemonic with indices [1680, 1471, 217, 42, 1338, 279, ...]
+ * computeRowChecks([1680, 1471, 217, 42, 1338, 279, 1907, 324, 468, 682, 1844, 126])
+ * // Returns [1315, 1659, 646, 599]
+ * // where 1315 = (1680 + 1471 + 217) mod 2053
+ * //       1659 = (42 + 1338 + 279) mod 2053
+ * //       646 = (1907 + 324 + 468) mod 2053
+ * //       599 = (682 + 1844 + 126) mod 2053
  */
 export function computeRowChecks(wordIndices: number[]): number[] {
   const rowCount = wordIndices.length / WORDS_PER_ROW;
@@ -51,24 +51,24 @@ export function computeRowChecks(wordIndices: number[]): number[] {
 }
 
 /**
- * Calculates the global checksum by summing all word indices mod 2053.
+ * Calculates the Global Integrity Check (GIC) by summing all word indices mod 2053.
  * 
  * PATH A: Direct computation from word indices (or interpolated values).
  * 
- * This provides an overall checksum that complements the per-row checksums.
- * During recovery, if row checksums pass but the global checksum fails,
+ * This provides an overall integrity check that complements the per-row checksums.
+ * During recovery, if row checksums pass but the GIC fails,
  * it indicates a more subtle corruption pattern.
  * 
- * @param wordIndices - Array of BIP39 word indices (0-2047)
- * @returns The global checksum in GF(2053)
+ * @param wordIndices - Array of BIP39 word indices (1-2048)
+ * @returns The Global Integrity Check (GIC) in GF(2053)
  * 
  * @example
  * // For 12-word mnemonic
- * computeGlobalChecksum([1679, 1470, 216, 41, 1337, 278, 1906, 323, 467, 681, 1843, 125])
- * // Returns 101
- * // where 101 = (1679 + 1470 + ... + 125) mod 2053
+ * computeGlobalIntegrityCheck([1680, 1471, 217, 42, 1338, 279, 1907, 324, 468, 682, 1844, 126])
+ * // Returns 113
+ * // where 113 = (1680 + 1471 + ... + 126) mod 2053
  */
-export function computeGlobalChecksum(wordIndices: number[]): number {
+export function computeGlobalIntegrityCheck(wordIndices: number[]): number {
   return wordIndices.reduce((acc, value) => modAdd(acc, value), 0);
 }
 
@@ -93,9 +93,9 @@ export function computeGlobalChecksum(wordIndices: number[]): number {
  * @throws {Error} If polynomials have different degrees
  * 
  * @example
- * // Sum two degree-1 polynomials: P₁(x) = 1679 + 456x, P₂(x) = 1470 + 789x
- * sumPolynomials([[1679, 456], [1470, 789]])
- * // Returns [1096, 1245] representing 1096 + 1245x (mod 2053)
+ * // Sum two degree-1 polynomials: P₁(x) = 1680 + 456x, P₂(x) = 1471 + 789x
+ * sumPolynomials([[1680, 456], [1471, 789]])
+ * // Returns [1098, 1245] representing 1098 + 1245x (mod 2053)
  */
 export function sumPolynomials(polynomials: number[][]): number[] {
   if (polynomials.length === 0) {
@@ -138,7 +138,7 @@ export function sumPolynomials(polynomials: number[][]): number[] {
  * 
  * @example
  * // For 12 words with degree-1 polynomials (k=2)
- * const wordPolys = [[1679, 456], [1470, 789], [216, 123], ...]
+ * const wordPolys = [[1680, 456], [1471, 789], [217, 123], ...]
  * const rowPolys = computeRowCheckPolynomials(wordPolys)
  * // Returns 4 polynomials, one per row
  */
@@ -161,24 +161,24 @@ export function computeRowCheckPolynomials(wordPolynomials: number[][]): number[
 }
 
 /**
- * Computes global checksum polynomial from word polynomials.
+ * Computes Global Integrity Check (GIC) polynomial from word polynomials.
  * 
- * PATH B: Creates checksum polynomial by summing all word polynomial coefficients.
+ * PATH B: Creates GIC polynomial by summing all word polynomial coefficients.
  * 
  * Creates a polynomial that is the sum of all word polynomials. Evaluating this
  * polynomial at any share number x gives the same result as Path A (sum of all
  * word shares).
  * 
  * @param wordPolynomials - Array of word polynomials (one per word)
- * @returns Global checksum polynomial
+ * @returns Global Integrity Check (GIC) polynomial
  * 
  * @example
  * // For 12 words with degree-1 polynomials (k=2)
- * const wordPolys = [[1679, 456], [1470, 789], ...]
- * const globalPoly = computeGlobalCheckPolynomial(wordPolys)
+ * const wordPolys = [[1680, 456], [1471, 789], ...]
+ * const gicPoly = computeGlobalIntegrityCheckPolynomial(wordPolys)
  * // Returns one polynomial representing sum of all words
  */
-export function computeGlobalCheckPolynomial(wordPolynomials: number[][]): number[] {
+export function computeGlobalIntegrityCheckPolynomial(wordPolynomials: number[][]): number[] {
   return sumPolynomials(wordPolynomials);
 }
 

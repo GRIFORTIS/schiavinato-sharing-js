@@ -48,18 +48,18 @@ describe('Lagrange Interpolation', () => {
     it('should recover all test vector secrets', () => {
       // Test all 12 word secrets from TEST_VECTORS.md
       const testCases = [
-        { secret: 1679, shares: [[1, 82], [2, 538], [3, 994]] },
-        { secret: 1470, shares: [[1, 1572], [2, 1674], [3, 1776]] },
-        { secret: 216, shares: [[1, 1342], [2, 415], [3, 1541]] },
-        { secret: 41, shares: [[1, 1044], [2, 2047], [3, 997]] },
-        { secret: 1337, shares: [[1, 198], [2, 1112], [3, 2026]] },
-        { secret: 278, shares: [[1, 849], [2, 1420], [3, 1991]] },
-        { secret: 1906, shares: [[1, 272], [2, 691], [3, 1110]] },
-        { secret: 323, shares: [[1, 679], [2, 1035], [3, 1391]] },
-        { secret: 467, shares: [[1, 142], [2, 1870], [3, 1545]] },
-        { secret: 681, shares: [[1, 811], [2, 941], [3, 1071]] },
-        { secret: 1843, shares: [[1, 1965], [2, 34], [3, 156]] },
-        { secret: 125, shares: [[1, 508], [2, 891], [3, 1274]] },
+        { secret: 1680, shares: [[1, 83], [2, 539], [3, 995]] },
+        { secret: 1471, shares: [[1, 1573], [2, 1675], [3, 1777]] },
+        { secret: 217, shares: [[1, 1343], [2, 416], [3, 1542]] },
+        { secret: 42, shares: [[1, 1045], [2, 2048], [3, 998]] },
+        { secret: 1338, shares: [[1, 199], [2, 1113], [3, 2027]] },
+        { secret: 279, shares: [[1, 850], [2, 1421], [3, 1992]] },
+        { secret: 1907, shares: [[1, 273], [2, 692], [3, 1111]] },
+        { secret: 324, shares: [[1, 680], [2, 1036], [3, 1392]] },
+        { secret: 468, shares: [[1, 143], [2, 1871], [3, 1546]] },
+        { secret: 682, shares: [[1, 812], [2, 942], [3, 1072]] },
+        { secret: 1844, shares: [[1, 1966], [2, 35], [3, 157]] },
+        { secret: 126, shares: [[1, 509], [2, 892], [3, 1275]] },
       ];
 
       for (const { secret, shares } of testCases) {
