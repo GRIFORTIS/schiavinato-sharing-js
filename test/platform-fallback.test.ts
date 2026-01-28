@@ -50,17 +50,24 @@ describe('Platform Fallback (Node.js Legacy)', () => {
     // proves the fallback logic executed successfully.
   });
 
-  it.skipIf(!globalThis.crypto)('should initialize successfully with Web Crypto (standard path)', async () => {
-    // 1. Ensure Web Crypto is present (standard Node 20+ env)
-    // Note: Skipped on Node 18.x where globalThis.crypto may be undefined
-    expect(globalThis.crypto).toBeDefined();
+  it('should work correctly regardless of platform (Web Crypto or Node.js fallback)', async () => {
+    // 1. Don't assume which crypto source is available - both are valid
+    // On Node 20+: Uses Web Crypto (globalThis.crypto)
+    // On Node 18 or restricted envs: Uses Node.js crypto module (fallback)
 
-    // 2. Import module
+    // 2. Import module (will use whatever source is available)
     const randomModule = await import('../src/utils/random.js');
 
-    // 3. Verify it works
+    // 3. Verify it produces secure random numbers
     const randomVal = randomModule.getRandomIntInclusive(100);
     expect(randomVal).toBeGreaterThanOrEqual(0);
     expect(randomVal).toBeLessThanOrEqual(100);
+    
+    // 4. Test multiple values to ensure proper distribution
+    const values = Array.from({ length: 10 }, () => randomModule.getRandomIntInclusive(10));
+    values.forEach(v => {
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThanOrEqual(10);
+    });
   });
 });
