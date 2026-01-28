@@ -242,22 +242,30 @@ describe('Edge Cases and Validation', () => {
   });
 
   describe('Insufficient shares', () => {
-    it('should fail to recover with k-1 shares for 2-of-3', async () => {
+    it('should produce incorrect mnemonic with k-1 shares for 2-of-3', async () => {
       const mnemonic = await generateValidMnemonic(12);
       const shares = await splitMnemonic(mnemonic, 2, 3);
       
       // Try with only 1 share (need 2)
+      // Lagrange interpolation will produce A result, but it will be wrong
       const result = await recoverMnemonic([shares[0]], 12);
-      expect(result.success).toBe(false);
+      
+      // The recovered mnemonic should be different from the original
+      // (might have valid BIP39 checksum by chance ~6% of time, so we don't check success flag)
+      expect(result.mnemonic).not.toBe(mnemonic);
     });
 
-    it('should fail to recover with k-1 shares for 3-of-5', async () => {
+    it('should produce incorrect mnemonic with k-1 shares for 3-of-5', async () => {
       const mnemonic = await generateValidMnemonic(12);
       const shares = await splitMnemonic(mnemonic, 3, 5);
       
-      // Try with only 2 shares (need 3)
+      // Try with only 2 shares (need 3)  
+      // Lagrange interpolation will produce A result, but it will be wrong
       const result = await recoverMnemonic([shares[0], shares[1]], 12);
-      expect(result.success).toBe(false);
+      
+      // The recovered mnemonic MUST be different from the original
+      // This verifies threshold security: k-1 shares don't reveal the secret
+      expect(result.mnemonic).not.toBe(mnemonic);
     });
   });
 
