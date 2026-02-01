@@ -453,10 +453,18 @@ jobs:
         PKG="@grifortis/schiavinato-sharing"
         VER="${{ steps.meta.outputs.pkg_version }}"
         echo "Checking NPM for existing version: ${PKG}@${VER}"
-        # Golden-standard idempotency: if the version exists, verify the registry tarball matches
-        # the tarball we would publish from this tag. If it doesn't match, FAIL loudly.
-        PUBLISHED_JSON="$(npm view "${PKG}@${VER}" --json 2>/dev/null || true)"
-        if [ -z "${PUBLISHED_JSON}" ]; then
+        # Golden-standard idempotency:
+        # - If the version exists, verify the registry tarball matches what this tag produces.
+        # - If the version does NOT exist, proceed to publish (do NOT fail due to tool output quirks).
+        #
+        # npm@11 can emit an E404 *as JSON to stdout*, even when stderr is suppressed; therefore
+        # we must treat both non-zero exit and JSON error objects as "not published".
+        set +e
+        PUBLISHED_JSON="$(npm view "${PKG}@${VER}" --json 2>/dev/null)"
+        NPM_VIEW_STATUS="$?"
+        set -e
+
+        if [ "$NPM_VIEW_STATUS" -ne 0 ] || [ -z "${PUBLISHED_JSON}" ]; then
           echo "already_published=false" >> "$GITHUB_OUTPUT"
           echo "Not found on NPM: ${PKG}@${VER}"
           exit 0
@@ -465,19 +473,42 @@ jobs:
         export PUBLISHED_JSON
         export WANT_SHASUM="${{ steps.npm_pack.outputs.shasum }}"
         export WANT_INTEGRITY="${{ steps.npm_pack.outputs.integrity }}"
-        node - <<'NODE'
+        RESULT="$(node - <<'NODE'
         const publishedRaw = process.env.PUBLISHED_JSON;
         const wantShasum = process.env.WANT_SHASUM;
         const wantIntegrity = process.env.WANT_INTEGRITY;
         if (!wantShasum || !wantIntegrity) throw new Error('Missing expected tarball hashes from npm pack');
 
-        let data = JSON.parse(publishedRaw);
+        let data;
+        try {
+          data = JSON.parse(publishedRaw);
+        } catch (e) {
+          // Defensive: if npm emitted non-JSON output, treat as "not published" so we can proceed to publish.
+          console.log('not_published');
+          process.exit(0);
+        }
         if (Array.isArray(data)) data = data[0];
         if (!data || typeof data !== 'object') throw new Error('Unexpected npm view JSON output');
+
+        // npm may emit a JSON error object on stdout (e.g. E404 for missing version).
+        // If so, treat as not published (idempotency).
+        if (data.error && typeof data.error === 'object' && data.error.code) {
+          if (data.error.code === 'E404') {
+            console.log('not_published');
+            process.exit(0);
+          }
+          throw new Error(`npm view returned error object: ${String(data.error.code)}`);
+        }
+
+        // Some registries/clients may omit dist hashes; that should be a hard failure when the version exists,
+        // because we cannot verify supply-chain identity.
         const dist = data.dist || {};
         const gotShasum = dist.shasum;
         const gotIntegrity = dist.integrity;
         if (!gotShasum || !gotIntegrity) {
+          console.log('not_published');
+          // This is *not* "not published". The version exists, but we cannot verify it.
+          // Force a hard failure so a human can investigate registry output.
           throw new Error('npm view output missing dist.shasum/dist.integrity (cannot verify)');
         }
         if (gotShasum !== wantShasum || gotIntegrity !== wantIntegrity) {
@@ -488,8 +519,20 @@ jobs:
           console.error(`Registry integrity: ${gotIntegrity}`);
           process.exit(1);
         }
-        console.log('NPM published tarball matches local npm pack output.');
+        console.log('published_ok');
         NODE
+        )"
+
+        if [ "${RESULT}" = "not_published" ]; then
+          echo "already_published=false" >> "$GITHUB_OUTPUT"
+          echo "Not found on NPM: ${PKG}@${VER}"
+          exit 0
+        fi
+
+        if [ "${RESULT}" != "published_ok" ]; then
+          echo "Unexpected npm check result: ${RESULT}" >&2
+          exit 1
+        fi
 
         echo "already_published=true" >> "$GITHUB_OUTPUT"
         echo "Already published on NPM and verified: ${PKG}@${VER}"
