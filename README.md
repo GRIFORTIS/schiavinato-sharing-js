@@ -167,13 +167,7 @@ See [`TESTING.md`](./TESTING.md) for details.
 
 This repo includes a browser-based validator under `validator/` for development/testing/auditing workflows. It is **not** a wallet tool and must not be used with real funds.
 
-- **NPM status**: The historical NPM package `@grifortis/schiavinato-validator` is **deprecated**. Use the signed GitHub Release HTML assets and follow `validator/README.md`.
-
-```bash
-npm run validator
-```
-
-Then open `http://localhost:8080/validator/JS_Library_Validator.html`.
+See [`validator/README`](./validator/README.md) for features, required validation steps, and usage.
 
 ---
 

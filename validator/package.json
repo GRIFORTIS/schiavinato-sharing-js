@@ -1,5 +1,5 @@
 {
-  "name": "@grifortis/schiavinato-validator",
+  "name": "schiavinato-validator-dev",
   "version": "0.4.0",
   "description": "Interactive browser-based validator and testing tool for Schiavinato Sharing - human-executable secret sharing for BIP39 mnemonics",
   "private": true,

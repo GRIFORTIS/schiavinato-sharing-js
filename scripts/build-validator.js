@@ -7,7 +7,7 @@
  * 1. Reads the current version from package.json
  * 2. Injects the version into the validator HTML
  * 3. Creates checksums for verification
- * 4. Prepares validator for NPM publication
+ * 4. Produces a standalone HTML artifact for GitHub Releases
  */
 
 const fs = require('fs');
@@ -106,5 +106,5 @@ if (footerVersion && footerVersion[1] === version) {
 console.log('\n✅ Validator build complete!');
 console.log('\nNext steps:');
 console.log('  - Test the validator locally: npm run validator');
-console.log('  - Or download the signed HTML from GitHub Releases\n');
+console.log('  - Download the signed HTML from GitHub Releases\n');
 

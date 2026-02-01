@@ -26,13 +26,11 @@ This validator lets you:
 
 It is distributed as a signed HTML file in GitHub Releases and can also be run locally from this repository.
 
-**NPM status (important):** The NPM package `@grifortis/schiavinato-validator` exists for historical reasons but is **deprecated** and **must not** be used as a distribution channel. Use the signed GitHub Release assets instead.
-
 ---
 
 ## Links
 
-- **Main JS library**: [`../README.md`](../README.md)
+- **Main JS library**: [`../README`](../README.md)
 - **Canonical protocol + specs**: [schiavinato-sharing](https://github.com/GRIFORTIS/schiavinato-sharing)
 - **Test vectors**: [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
 - **Canonical security posture**: [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
