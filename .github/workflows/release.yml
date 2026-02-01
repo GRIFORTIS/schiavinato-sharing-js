@@ -9,6 +9,15 @@ on:
         description: 'Why are you running a dry-run? (for audit trail)'
         required: true
         type: string
+      publish:
+        description: 'Set to true to run the publish job (NPM + upload assets)'
+        required: false
+        type: boolean
+        default: false
+      tag:
+        description: 'Tag to publish (e.g., v0.4.1). Required when publish=true.'
+        required: false
+        type: string
 
 jobs:
   dry-run:
@@ -257,13 +266,28 @@ jobs:
     permissions:
       contents: write
       id-token: write
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish == true)
 
     steps:
+    - name: Validate workflow_dispatch inputs
+      if: github.event_name == 'workflow_dispatch'
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ "${{ inputs.publish }}" != "true" ]; then
+          echo "publish=false; skipping publish job"
+          exit 0
+        fi
+        if [ -z "${{ inputs.tag }}" ]; then
+          echo "Input 'tag' is required when publish=true (e.g. v0.4.1)" >&2
+          exit 1
+        fi
+
     - name: Checkout tagged code
       uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       with:
         fetch-depth: 0
+        ref: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
 
     - name: Setup Node.js
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -281,7 +305,7 @@ jobs:
       run: |
         set -euo pipefail
         PKG_VERSION="$(node -p "require('./package.json').version")"
-        TAG_FROM_EVENT="${{ github.event.release.tag_name }}"
+        TAG_FROM_EVENT="${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}"
         TAG_NORM="v${PKG_VERSION}"
         echo "pkg_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
         echo "tag_norm=$TAG_NORM" >> "$GITHUB_OUTPUT"
@@ -563,6 +587,7 @@ jobs:
     - name: Upload signed artifacts to release
       uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
       with:
+        tag_name: ${{ steps.meta.outputs.tag_norm }}
         files: |
           CHECKSUMS-LIBRARY.txt
           CHECKSUMS-LIBRARY.txt.asc
