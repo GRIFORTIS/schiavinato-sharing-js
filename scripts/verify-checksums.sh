@@ -13,6 +13,7 @@ set -e
 
 VERSION="${1:-latest}"
 REPO="GRIFORTIS/schiavinato-sharing-js"
+CHECKSUMS_FILE="CHECKSUMS-LIBRARY.txt"
 
 echo "🔐 Verifying checksums for @grifortis/schiavinato-sharing"
 echo ""
@@ -26,17 +27,17 @@ NC='\033[0m' # No Color
 # Download checksums from GitHub release
 echo "📥 Downloading checksums for version: ${VERSION}"
 if [ "$VERSION" = "latest" ]; then
-  CHECKSUM_URL="https://github.com/${REPO}/releases/latest/download/CHECKSUMS.txt"
+  CHECKSUM_URL="https://github.com/${REPO}/releases/latest/download/${CHECKSUMS_FILE}"
 else
-  CHECKSUM_URL="https://github.com/${REPO}/releases/download/${VERSION}/CHECKSUMS.txt"
+  CHECKSUM_URL="https://github.com/${REPO}/releases/download/${VERSION}/${CHECKSUMS_FILE}"
 fi
 
 echo "   URL: ${CHECKSUM_URL}"
 echo ""
 
 # Download checksums file
-if curl -fSL -o CHECKSUMS.txt "$CHECKSUM_URL"; then
-  echo -e "${GREEN}✓${NC} Downloaded CHECKSUMS.txt"
+if curl -fSL -o "${CHECKSUMS_FILE}" "$CHECKSUM_URL"; then
+  echo -e "${GREEN}✓${NC} Downloaded ${CHECKSUMS_FILE}"
 else
   echo -e "${RED}✗${NC} Failed to download checksums"
   echo "   Make sure the release exists and has checksums attached"
@@ -46,7 +47,7 @@ fi
 echo ""
 echo "📝 Checksums file content:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-cat CHECKSUMS.txt
+cat "${CHECKSUMS_FILE}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -74,11 +75,11 @@ while IFS= read -r line; do
   EXPECTED_HASH=$(echo "$line" | awk '{print $1}')
   FILENAME=$(echo "$line" | awk '{print $2}')
   
-  # Skip if filename contains path outside dist (like browser/)
-  if [[ "$FILENAME" == *"/"* ]]; then
-    ACTUAL_FILE="$FILENAME"
-  else
-    ACTUAL_FILE="$FILENAME"
+  ACTUAL_FILE="$FILENAME"
+  # Backward-compat: some releases may list the browser bundle filename without path.
+  # If the file isn't in dist/, try dist/browser/.
+  if [ ! -f "$ACTUAL_FILE" ] && [ -f "browser/$ACTUAL_FILE" ]; then
+    ACTUAL_FILE="browser/$ACTUAL_FILE"
   fi
   
   if [ -f "$ACTUAL_FILE" ]; then
@@ -96,7 +97,7 @@ while IFS= read -r line; do
   else
     echo -e "${YELLOW}⚠${NC}  $ACTUAL_FILE (not found)"
   fi
-done < ../CHECKSUMS.txt
+done < ../"${CHECKSUMS_FILE}"
 
 cd ..
 

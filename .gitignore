@@ -28,7 +28,9 @@ coverage/
 .eslintcache
 
 # Checksums (generated during release)
-CHECKSUMS.txt
-CHECKSUMS.json
+CHECKSUMS-LIBRARY.txt
+CHECKSUMS-LIBRARY.txt.asc
+validator/CHECKSUMS-VALIDATOR.txt
+validator/CHECKSUMS-VALIDATOR.txt.asc
 *.tar.gz
 *.tar.gz.sha256

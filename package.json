@@ -32,8 +32,6 @@
     "typecheck": "tsc --noEmit",
     "prepare": "husky install || true",
     "prepublishOnly": "npm run typecheck && npm run test && npm run build",
-    "publish:validator": "cd validator && npm publish --provenance",
-    "release:all": "npm publish --provenance && npm run publish:validator",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "validator": "npx serve -p 8080 .",
     "verify": "bash scripts/verify-checksums.sh",

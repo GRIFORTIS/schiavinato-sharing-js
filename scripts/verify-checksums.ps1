@@ -13,6 +13,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $Repo = "GRIFORTIS/schiavinato-sharing-js"
+$ChecksumsFile = "CHECKSUMS-LIBRARY.txt"
 
 Write-Host "🔐 Verifying checksums for @grifortis/schiavinato-sharing" -ForegroundColor Cyan
 Write-Host ""
@@ -21,9 +22,9 @@ Write-Host ""
 Write-Host "📥 Downloading checksums for version: $Version" -ForegroundColor Yellow
 
 if ($Version -eq "latest") {
-    $ChecksumUrl = "https://github.com/$Repo/releases/latest/download/CHECKSUMS.txt"
+    $ChecksumUrl = "https://github.com/$Repo/releases/latest/download/$ChecksumsFile"
 } else {
-    $ChecksumUrl = "https://github.com/$Repo/releases/download/$Version/CHECKSUMS.txt"
+    $ChecksumUrl = "https://github.com/$Repo/releases/download/$Version/$ChecksumsFile"
 }
 
 Write-Host "   URL: $ChecksumUrl"
@@ -31,8 +32,8 @@ Write-Host ""
 
 # Download checksums file
 try {
-    Invoke-WebRequest -Uri $ChecksumUrl -OutFile "CHECKSUMS.txt"
-    Write-Host "✓ Downloaded CHECKSUMS.txt" -ForegroundColor Green
+    Invoke-WebRequest -Uri $ChecksumUrl -OutFile $ChecksumsFile
+    Write-Host "✓ Downloaded $ChecksumsFile" -ForegroundColor Green
 } catch {
     Write-Host "✗ Failed to download checksums" -ForegroundColor Red
     Write-Host "   Make sure the release exists and has checksums attached"
@@ -42,7 +43,7 @@ try {
 Write-Host ""
 Write-Host "📝 Checksums file content:"
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-Get-Content "CHECKSUMS.txt"
+Get-Content $ChecksumsFile
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 Write-Host ""
 
@@ -60,7 +61,7 @@ Write-Host ""
 $Passed = 0
 $Failed = 0
 
-Get-Content "CHECKSUMS.txt" | ForEach-Object {
+Get-Content $ChecksumsFile | ForEach-Object {
     $line = $_
     
     # Skip empty lines and comments
@@ -82,6 +83,12 @@ Get-Content "CHECKSUMS.txt" | ForEach-Object {
     $Filename = $parts[1]
     
     $ActualFile = Join-Path "dist" $Filename
+    # Backward-compat: some releases may list the browser bundle filename without path.
+    # If the file isn't in dist\, try dist\browser\.
+    if (-not (Test-Path $ActualFile)) {
+        $Alt = Join-Path "dist\browser" $Filename
+        if (Test-Path $Alt) { $ActualFile = $Alt }
+    }
     
     if (Test-Path $ActualFile) {
         $ActualHash = (Get-FileHash -Path $ActualFile -Algorithm SHA256).Hash.ToLower()

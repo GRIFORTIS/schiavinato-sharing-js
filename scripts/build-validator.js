@@ -106,6 +106,5 @@ if (footerVersion && footerVersion[1] === version) {
 console.log('\n✅ Validator build complete!');
 console.log('\nNext steps:');
 console.log('  - Test the validator locally: npm run validator');
-console.log('  - Publish to NPM: npm run publish:validator');
-console.log('  - Or publish both: npm run release:all\n');
+console.log('  - Or download the signed HTML from GitHub Releases\n');
 

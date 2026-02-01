@@ -133,7 +133,7 @@ jobs:
         cd validator/dist
         
         {
-          echo "# SHA256 Checksums - @grifortis/schiavinato-validator"
+          echo "# SHA256 Checksums - schiavinato-validator (HTML)"
           echo ""
           echo "Version: ${TAG}"
           echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
@@ -351,7 +351,7 @@ jobs:
         TAG="${{ steps.meta.outputs.tag_norm }}"
         cd validator/dist
         {
-          echo "# SHA256 Checksums - @grifortis/schiavinato-validator"
+          echo "# SHA256 Checksums - schiavinato-validator (HTML)"
           echo ""
           echo "Version: ${TAG}"
           echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"

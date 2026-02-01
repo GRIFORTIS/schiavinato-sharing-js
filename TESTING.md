@@ -113,7 +113,7 @@ describe('Schiavinato Sharing', () => {
 
 The library is tested against the official test vectors from the specification:
 
-🔗 [TEST_VECTORS.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/TEST_VECTORS.md)
+🔗 [TEST_VECTORS.md](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
 
 These vectors ensure compatibility with other implementations and the reference specification.
 
@@ -185,8 +185,8 @@ npm run build
 ## Resources
 
 - **Vitest Documentation**: https://vitest.dev/
-- **Test Vectors**: [TEST_VECTORS.md](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/TEST_VECTORS.md)
-- **Specification**: [Whitepaper PDF](https://github.com/GRIFORTIS/schiavinato-sharing-spec/releases/latest/download/WHITEPAPER.pdf) ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.tex))
+- **Test Vectors**: [TEST_VECTORS.md](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
+- **Specification**: [Whitepaper PDF](https://github.com/GRIFORTIS/schiavinato-sharing/releases/latest/download/WHITEPAPER.pdf) ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/WHITEPAPER.tex))
 
 ---
 

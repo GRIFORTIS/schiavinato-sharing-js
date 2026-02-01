@@ -2,6 +2,7 @@
   "name": "@grifortis/schiavinato-validator",
   "version": "0.4.0",
   "description": "Interactive browser-based validator and testing tool for Schiavinato Sharing - human-executable secret sharing for BIP39 mnemonics",
+  "private": true,
   "main": "JS_Library_Validator.html",
   "files": [
     "JS_Library_Validator.html",
@@ -40,10 +41,6 @@
     "url": "https://github.com/GRIFORTIS/schiavinato-sharing-js/issues"
   },
   "homepage": "https://github.com/GRIFORTIS/schiavinato-sharing-js/tree/main/validator#readme",
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
   "engines": {
     "node": ">=18.0.0"
   }

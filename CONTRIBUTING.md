@@ -44,7 +44,7 @@ We welcome:
 
 1. **Search existing issues** – Someone might already be working on it
 2. **Open an issue first** – For significant changes, discuss the approach
-3. **Review the specification** – Understand the [Schiavinato Sharing spec](https://github.com/GRIFORTIS/schiavinato-sharing-spec)
+3. **Review the specification** – Understand the [Schiavinato Sharing spec](https://github.com/GRIFORTIS/schiavinato-sharing)
 4. **Check test vectors** – Ensure compatibility with reference implementation
 
 ## Development Setup
@@ -327,7 +327,7 @@ export function splitMnemonic(
 - **General questions**: [GitHub Discussions](https://github.com/GRIFORTIS/schiavinato-sharing-js/discussions)
 - **Bug reports**: [Open an issue](https://github.com/GRIFORTIS/schiavinato-sharing-js/issues)
 - **Security**: See [SECURITY.md](.github/SECURITY.md)
-- **Specification questions**: See [spec repo](https://github.com/GRIFORTIS/schiavinato-sharing-spec)
+- **Specification questions**: See [spec repo](https://github.com/GRIFORTIS/schiavinato-sharing)
 
 ## License
 

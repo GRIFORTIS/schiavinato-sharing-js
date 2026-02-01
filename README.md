@@ -1,531 +1,196 @@
-# @grifortis/schiavinato-sharing-js
+# Schiavinato Sharing (JS/TS)
 
-**Production-ready JavaScript/TypeScript library for Schiavinato Sharing**
-
-Human-executable secret sharing for BIP39 mnemonics using GF(2053).
-
-[![CI](https://github.com/GRIFORTIS/schiavinato-sharing-js/workflows/CI/badge.svg)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions)
-[![codecov](https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js/graph/badge.svg?token=3b59c6f6-fd7f-404e-b678-c688b652809f)](https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js)
+[![Security: Experimental](https://img.shields.io/badge/Security-⚠️%20EXPERIMENTAL%20⚠️-red)](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
+[![CI](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/codeql.yml)
+[![codecov](https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js/graph/badge.svg)](https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js)
 [![npm version](https://img.shields.io/npm/v/@grifortis/schiavinato-sharing.svg)](https://www.npmjs.com/package/@grifortis/schiavinato-sharing)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+> ## ⚠️ WARNING: EXPERIMENTAL SOFTWARE ⚠️
+> 
+>DO NOT USE IT FOR REAL FUNDS!
+>
+> Schiavinato Sharing specification and implementations have NOT been audited. Use for testing, learning, and experimentation only. See [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md) for details.
+>
+>We invite **cryptographers** and **developers** to review the spec and software. See [CONTRIBUTING](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/CONTRIBUTING.md) to know more.
+
+JavaScript/TypeScript implementation of **Schiavinato Sharing**: dual-mode (manual + software) \(k\)-of-\(n\) threshold secret sharing for **BIP39 mnemonics** over **GF(2053)**. Designed for offline/air-gapped workflows, with manual-fallback compatibility.
 
 ---
 
-## 📦 Installation
+## What is this?
+
+**Schiavinato Sharing** is a dual-mode (**manual + software**) \(k\)-of-\(n\) threshold secret sharing scheme for **BIP39 mnemonics**. It operates directly on the **1-indexed BIP39 word indices** over the prime field **GF(2053)**, so the recovered secret is a standard BIP39 mnemonic compatible with modern wallets.
+
+**In this JS implementation, you can:**
+
+- Split a BIP39 mnemonic into \(k\)-of-\(n\) shares (`Share[]`)
+- Recover the original BIP39 mnemonic from \(k\) shares (`RecoveryResult`)
+- Validate inputs and share integrity during split/recovery to prevent silent mistakes
+
+---
+
+## Links
+
+- **Canonical protocol + specs**: [schiavinato-sharing](https://github.com/GRIFORTIS/schiavinato-sharing)
+- **Whitepaper**: [PDF](https://github.com/GRIFORTIS/schiavinato-sharing/releases/latest/download/WHITEPAPER.pdf) | [LaTeX](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/WHITEPAPER.tex)
+- **Test Vectors**: [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
+- **Canonical security posture**: [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
+- **HTML implementation**: [schiavinato-sharing-html](https://github.com/GRIFORTIS/schiavinato-sharing-html)
+- **Python implementation**: [schiavinato-sharing-py](https://github.com/GRIFORTIS/schiavinato-sharing-py)
+- **Validator (dev tool)**: [`validator/README.md`](./validator/README.md)
+
+---
+
+## Security
+
+This library implements well-established cryptographic principles but has **NOT** been professionally audited.
+
+**Use only for**: testing, learning, experimentation.
+
+**Canonical security posture**: [schiavinato-sharing/SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
+
+---
+
+## Verify Before Use (Required)
+
+**CRITICAL**: Before using with real crypto seeds, verify the package and/or release artifacts haven't been tampered with.
+
+### Option A: Verify release artifacts (recommended for highest assurance)
+
+This repository's releases include:
+- `CHECKSUMS-LIBRARY.txt` (+ detached signature `CHECKSUMS-LIBRARY.txt.asc`)
+- A signed release tarball `schiavinato-sharing-vX.Y.Z.tar.gz` (+ `*.asc` + `*.sha256`)
+
+Import the GRIFORTIS public key and verify signatures before use.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GRIFORTIS/schiavinato-sharing-js/main/GRIFORTIS-PGP-PUBLIC-KEY.asc | gpg --import
+gpg --fingerprint security@grifortis.com
+```
+
+**Expected**: `7921 FD56 9450 8DA4 020E  671F 4CFE 6248 C57F 15DF`
+
+Then verify release assets (examples):
+
+```bash
+gpg --verify CHECKSUMS-LIBRARY.txt.asc CHECKSUMS-LIBRARY.txt
+gpg --verify schiavinato-sharing-vX.Y.Z.tar.gz.asc schiavinato-sharing-vX.Y.Z.tar.gz
+```
+
+If you've built the library locally, you can also verify the built outputs against the latest release checksums:
+
+```bash
+npm run build
+npm run build:browser
+npm run verify:latest
+```
+
+### Option B: Verify the NPM tarball identity (supply-chain sanity check)
+
+For NPM installs, verify the published tarball matches the tag/build:
+- Compare `dist.shasum` / `dist.integrity` from `npm view` against the values produced by `npm pack --json`
+- Pin exact versions and use lockfiles for repeatable installs
+
+---
+
+## Installation
 
 ```bash
 npm install @grifortis/schiavinato-sharing
 ```
 
-```bash
-yarn add @grifortis/schiavinato-sharing
+---
+
+## Quick Start
+
+### Split a mnemonic
+
+```ts
+import { recoverMnemonic, splitMnemonic } from '@grifortis/schiavinato-sharing';
+
+async function main() {
+  const mnemonic =
+    'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+
+  const shares = await splitMnemonic(mnemonic, 2, 3);
+  const result = await recoverMnemonic([shares[0], shares[1]], 12);
+
+  if (!result.success) throw new Error(String(result.errors.generic ?? 'Recovery failed'));
+  console.log(result.mnemonic);
+}
+
+main();
 ```
 
-```bash
-pnpm add @grifortis/schiavinato-sharing
-```
+### Recover a mnemonic
+
+Use `recoverMnemonic(shares, wordCount)` and check `result.success` (it returns a report object instead of throwing on validation failures).
 
 ---
 
-## 🧪 Interactive Validator Tool
+## API Reference (high-level)
 
-**The Schiavinato Sharing Validator is an interactive, browser-based testing and validation interface** that provides a transparent, auditable window into the cryptographic scheme.
+Stable entry points:
+- `splitMnemonic(mnemonic, k, n, options?)` (async)
+- `recoverMnemonic(shares, wordCount, options?)` (async)
+- `validateBip39Mnemonic(mnemonic)`
 
-### Why Use the Validator?
-
-- ✅ **Zero Installation**: Single HTML file that runs in any modern browser
-- ✅ **Fully Transparent**: Complete source code audit-friendly design
-- ✅ **Visual Learning**: Interactive interface for understanding the scheme
-- ✅ **Testing & Validation**: Verify custom scenarios and edge cases
-- ✅ **Air-Gapped Capable**: Works offline with cached dependencies
-- ✅ **Professional Quality**: Production-ready tool used across all GRIFORTIS tiers
-
-### Quick Access
-
-**NPM Package:**
-```bash
-npm install @grifortis/schiavinato-validator
-```
-
-**Direct Download:**
-- [Latest HTML File](https://github.com/GRIFORTIS/schiavinato-sharing-js/releases/latest) (from GitHub Releases)
-- [Validator Documentation](./validator/README.md)
-
-**Local Testing:**
-```bash
-# Clone this repository and run
-npm run validator
-# Then open http://localhost:8080/validator/JS_Library_Validator.html
-```
-
-### Features
-
-- 🎯 **BIP39 Seed Generation**: Create valid 12 or 24-word mnemonics
-- 🔀 **Share Creation**: Split mnemonics with configurable K-of-N schemes
-- 🔄 **Wallet Recovery**: Reconstruct mnemonics from any K shares
-- ✓ **BIP39 Validation**: Verify checksum integrity
-- 🛠️ **Audit Tools**: Intentionally break checksums to test error handling
-- 📊 **Visual Feedback**: Color-coded share selection and validation status
-
-### Use Cases
-
-The validator serves multiple purposes:
-
-| Audience | Use Case |
-|----------|----------|
-| **Developers** | Test library integration, verify implementations |
-| **Auditors** | Review cryptographic operations, validate security claims |
-| **Educators** | Demonstrate the scheme visually, teach concepts |
-| **Users** | Validate shares before distribution, test recovery |
-| **Researchers** | Experiment with parameters, explore edge cases |
-
-### Security Warning
-
-⚠️ **TESTING TOOL ONLY - NOT FOR PRODUCTION USE**
-
-- Do **NOT** use this tool with real cryptocurrency wallets
-- Do **NOT** use generated seeds for actual funds
-- Intended for development, testing, and auditing only
-
-For complete validator documentation, see **[validator/README.md](./validator/README.md)**.
+Advanced exports (field arithmetic, Lagrange helpers, checksum helpers, secure wipe utilities) are also available for integration/testing; see the TypeScript types and module exports in `src/index.ts`.
 
 ---
 
-## 🚀 Quick Start
+## Conformance Validation
 
-### Splitting a Mnemonic
-
-```typescript
-import { splitMnemonic } from '@grifortis/schiavinato-sharing';
-
-const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
-const threshold = 2;  // Minimum shares needed to recover
-const totalShares = 3; // Total shares to create
-
-const shares = splitMnemonic(mnemonic, threshold, totalShares);
-console.log(shares);
-// [
-//   'share 1 of 3: word1 word2 ... wordN [checksum]',
-//   'share 2 of 3: word1 word2 ... wordN [checksum]',
-//   'share 3 of 3: word1 word2 ... wordN [checksum]'
-// ]
-```
-
-### Recovering a Mnemonic
-
-```typescript
-import { recoverMnemonic } from '@grifortis/schiavinato-sharing';
-
-const shares = [
-  'share 1 of 3: word1 word2 ... wordN [checksum]',
-  'share 2 of 3: word1 word2 ... wordN [checksum]'
-];
-
-const recovered = recoverMnemonic(shares);
-console.log(recovered);
-// 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
-```
+This implementation is validated against canonical test vectors:
+- [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
 
 ---
 
-## 📚 API Reference
-
-### `splitMnemonic(mnemonic, threshold, totalShares, options?)`
-
-Splits a BIP39 mnemonic into shares using Schiavinato Sharing.
-
-**Parameters:**
-- `mnemonic` (string): Valid BIP39 mnemonic phrase (12, 15, 18, 21, or 24 words)
-- `threshold` (number): Minimum shares needed for recovery (k)
-- `totalShares` (number): Total shares to generate (n), where k ≤ n ≤ 16
-- `options` (object, optional):
-  - `language` (string): BIP39 wordlist language (default: 'english')
-  - `includeChecksum` (boolean): Include checksums in shares (default: true)
-
-**Returns:** `string[]` - Array of share strings
-
-**Throws:**
-- `ValidationError` - Invalid mnemonic, threshold, or totalShares
-- `SecurityError` - Insufficient entropy or RNG failure
-
-**Example:**
-```typescript
-const shares = splitMnemonic(
-  'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-  3, // threshold
-  5, // total shares
-  { includeChecksum: true }
-);
-```
-
----
-
-### `recoverMnemonic(shares, options?)`
-
-Recovers a BIP39 mnemonic from shares.
-
-**Parameters:**
-- `shares` (string[]): Array of share strings (at least k shares)
-- `options` (object, optional):
-  - `validateChecksum` (boolean): Verify share checksums (default: true)
-  - `language` (string): BIP39 wordlist language (default: 'english')
-
-**Returns:** `string` - Recovered BIP39 mnemonic
-
-**Throws:**
-- `ValidationError` - Invalid shares or insufficient shares
-- `ChecksumError` - Share checksum verification failed
-- `RecoveryError` - Polynomial reconstruction failed
-
-**Example:**
-```typescript
-const recovered = recoverMnemonic(
-  [
-    'share 1 of 5: ...',
-    'share 3 of 5: ...',
-    'share 5 of 5: ...'
-  ],
-  { validateChecksum: true }
-);
-```
-
----
-
-## 🎯 Features
-
-- ✅ **Native 1-based BIP39 implementation** (v0.5.0) - no external wordlist dependencies
-- ✅ **O(1) word/ID lookups** - faster than traditional array-based wordlists
-- ✅ **Full TypeScript support** with comprehensive type definitions
-- ✅ **Minimal dependencies** - only @noble/hashes for cryptographic primitives
-- ✅ **Node.js and browser support** (CommonJS + ESM + IIFE)
-- ✅ **Built-in validation** for mnemonics and shares
-- ✅ **Dual-path checksum verification** to detect bit flips and hardware faults (v0.4.0)
-- ✅ **Constant-time operations** where applicable
-- ✅ **Extensive test suite** (100% code coverage)
-- ✅ **Production-ready** with semantic versioning
-
----
-
-## 🔒 Security
-
-### Security Status: ⚠️ EXPERIMENTAL
-
-While this library implements well-established cryptographic principles, it has **NOT** been professionally audited.
-
-**DO NOT USE FOR REAL FUNDS** until:
-- [ ] Professional security audit completed
-- [ ] Extensive peer review conducted
-- [ ] v1.0.0 released
-
-For now, use only for:
-- ✅ Testing and development
-- ✅ Educational purposes
-- ✅ Research and experimentation
-
-### Security Best Practices
-
-When using this library:
-
-1. **Use secure RNG**: Ensure your environment has a cryptographically secure random number generator
-2. **Validate inputs**: Always validate user-provided mnemonics and shares
-3. **Handle shares carefully**: Each share is sensitive; protect them
-4. **Test recovery**: Always verify you can recover before relying on shares
-5. **Use checksums**: Enable checksum verification (default)
-6. **Offline use**: Perform sensitive operations on air-gapped machines
-
-### Verification & CI Guards
-
-- CI enforces lint, typecheck, tests, and coverage thresholds (branches ≥85%, functions/lines/statements ≥90%).
-- Dependency audit gate: `npm audit --audit-level=high --production` runs in CI and fails on high/critical issues.
-- Secrets scanning: CI runs gitleaks to catch committed secrets.
-- Releases ship with SHA256 checksums and a CycloneDX `sbom.json`; verify with `sha256sum -c CHECKSUMS.txt`.
-- Build artifacts (library, browser bundle, validator) are produced in CI and attached to releases for traceability.
-
-### Reporting Security Issues
-
-See our [Security Policy](.github/SECURITY.md) for reporting vulnerabilities.
-
----
-
-## 📖 Documentation
-
-### Specification
-
-This library implements the Schiavinato Sharing specification:
-
-🔗 **[Specification Repository](https://github.com/GRIFORTIS/schiavinato-sharing-spec)**
-
-Key documents:
-- [Whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/releases/latest/download/WHITEPAPER.pdf) ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.tex)) – Complete mathematical description
-- [Test Vectors](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/TEST_VECTORS.md) – Validation data
-- [Reference Implementation](https://github.com/GRIFORTIS/schiavinato-sharing-spec/tree/main/reference-implementation) – HTML tool
-
-### How It Works
-
-Schiavinato Sharing is a secret-sharing scheme for BIP39 mnemonics:
-
-1. **Conversion**: Mnemonic words → numbers in GF(2053)
-2. **Polynomial**: Create polynomial of degree k-1 with secret as constant term
-3. **Evaluation**: Evaluate polynomial at n different points to generate shares
-4. **Recovery**: Use Lagrange interpolation to reconstruct the polynomial
-5. **Checksums**: Add error-detection checksums to each share with dual-path validation
-
-#### Dual-Path Checksum Validation (v0.4.0)
-
-The library implements redundant checksum validation to detect bit flips and hardware faults:
-
-- **Path A (Direct)**: Compute checksums by summing word shares modulo 2053
-- **Path B (Polynomial)**: Create checksum polynomials by summing word polynomial coefficients, then evaluate
-
-Both paths must produce identical results. Any disagreement indicates:
-- Memory corruption during share generation or recovery
-- Bit flips in RAM or storage
-- Hardware faults in CPU arithmetic
-- Data transmission errors
-
-This redundancy provides an additional layer of validation beyond standard cryptographic checksums.
-
-See the [whitepaper](https://github.com/GRIFORTIS/schiavinato-sharing-spec/releases/latest/download/WHITEPAPER.pdf) ([LaTeX source](https://github.com/GRIFORTIS/schiavinato-sharing-spec/blob/main/WHITEPAPER.tex)) for mathematical details.
-
----
-
-## 🧪 Testing
-
-This library includes extensive tests:
+## Functional Validation (Run Tests)
 
 ```bash
-# Run all tests
+npm ci
 npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
 npm run test:coverage
-
-# Type checking
-npm run typecheck
-
-# Lint
 npm run lint
+npm run typecheck
 ```
 
-### Test Coverage
+See [`TESTING.md`](./TESTING.md) for details.
 
-- Unit tests for all functions
-- Integration tests for full workflows
-- Edge case and error handling tests
-- Cross-validation with test vectors
-- Browser compatibility tests
+---
 
-### Manual Testing with Validator
+## Validator (Dev Tool Only)
 
-The library includes an interactive browser-based validator for manual testing:
+This repo includes a browser-based validator under `validator/` for development/testing/auditing workflows. It is **not** a wallet tool and must not be used with real funds.
+
+- **NPM status**: The historical NPM package `@grifortis/schiavinato-validator` is **deprecated**. Use the signed GitHub Release HTML assets and follow `validator/README.md`.
 
 ```bash
-# Start the validator
 npm run validator
 ```
 
-Then open http://localhost:8080/validator/JS_Library_Validator.html
-
-The validator provides:
-- Visual interface for creating shares
-- Interactive wallet recovery
-- BIP39 validation testing
-- Audit tools for error handling
-- Support for both word and index formats
-
-Perfect for:
-- Demonstrating the library to stakeholders
-- Manual validation of test vectors
-- Testing edge cases interactively
-- Auditing error handling behavior
-
-See [validator/README.md](validator/README.md) for complete documentation.
-
-**⚠️ Testing Only**: The validator is for development and testing only. Do not use with real cryptocurrency wallets.
+Then open `http://localhost:8080/validator/JS_Library_Validator.html`.
 
 ---
 
-## 🏗️ Building
+## Compatibility
 
-```bash
-# Build all formats (CJS, ESM, types)
-npm run build
-
-# Build browser bundle
-npm run build:browser
-```
-
-Output:
-- `dist/index.js` – CommonJS
-- `dist/index.mjs` – ES Modules
-- `dist/index.d.ts` – TypeScript definitions
-- `dist/browser/` – IIFE browser bundle
+- **Spec version**: v0.4.0
+- **Node.js**: 18+
 
 ---
 
-## 📦 Package Exports
+## Contributing
 
-This package provides multiple formats:
-
-```json
-{
-  "main": "./dist/index.js",       // CommonJS
-  "module": "./dist/index.mjs",    // ES Module
-  "types": "./dist/index.d.ts",    // TypeScript
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
-    }
-  }
-}
-```
-
-### Node.js (CommonJS)
-
-```javascript
-const { splitMnemonic, recoverMnemonic } = require('@grifortis/schiavinato-sharing');
-```
-
-### Node.js (ESM)
-
-```javascript
-import { splitMnemonic, recoverMnemonic } from '@grifortis/schiavinato-sharing';
-```
-
-### Browser (via CDN)
-
-```html
-<script src="https://unpkg.com/@grifortis/schiavinato-sharing"></script>
-<script>
-  const { splitMnemonic, recoverMnemonic } = SchiavinatoSharing;
-</script>
-```
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ---
 
-## 🔧 Advanced Usage
+## License
 
-### Custom Options
-
-```typescript
-import { splitMnemonic, recoverMnemonic } from '@grifortis/schiavinato-sharing';
-
-// Split with custom options
-const shares = splitMnemonic(mnemonic, 2, 3, {
-  language: 'english',      // BIP39 language
-  includeChecksum: true     // Include checksums (recommended)
-});
-
-// Recover with validation
-const recovered = recoverMnemonic(shares, {
-  validateChecksum: true,   // Verify checksums (recommended)
-  language: 'english'
-});
-```
-
-### Error Handling
-
-```typescript
-import { 
-  splitMnemonic, 
-  ValidationError, 
-  ChecksumError 
-} from '@grifortis/schiavinato-sharing';
-
-try {
-  const shares = splitMnemonic(mnemonic, 2, 3);
-} catch (error) {
-  if (error instanceof ValidationError) {
-    console.error('Invalid input:', error.message);
-  } else {
-    console.error('Unexpected error:', error);
-  }
-}
-
-try {
-  const recovered = recoverMnemonic(shares);
-} catch (error) {
-  if (error instanceof ChecksumError) {
-    console.error('Share corrupted:', error.message);
-  } else if (error instanceof ValidationError) {
-    console.error('Invalid shares:', error.message);
-  }
-}
-```
-
----
-
-## 🌍 Browser Compatibility
-
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-
-**Requirements:**
-- WebCrypto API for secure random number generation
-- ES2020 support
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-Areas we'd love help with:
-- 🐛 Bug reports and fixes
-- 🧪 Additional test cases
-- 📖 Documentation improvements
-- 🌍 Internationalization
-- ⚡ Performance optimizations
-
----
-
-## 📝 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for version history.
-
----
-
-## 📄 License
-
-[MIT License](LICENSE) – see file for details.
-
----
-
-## 🔗 Related Projects
-
-- **[Specification](https://github.com/GRIFORTIS/schiavinato-sharing-spec)** – Whitepaper and reference implementation
-- **[Python Library](https://github.com/GRIFORTIS/schiavinato-sharing-py)** – Python implementation (in development)
-- **[GRIFORTIS](https://github.com/GRIFORTIS)** – Organization homepage
-
----
-
-## 🙏 Acknowledgments
-
-This implementation is based on:
-- Shamir, A. (1979). "How to Share a Secret"
-- BIP39: Mnemonic code for generating deterministic keys
-- The Schiavinato Sharing specification by **Renato Schiavinato Lopez**, creator of Schiavinato Sharing and founder of GRIFORTIS
-
----
-
-## ❓ Support
-
-- 📖 **Documentation**: See [specification repo](https://github.com/GRIFORTIS/schiavinato-sharing-spec)
-- 🐛 **Bug Reports**: [Open an issue](https://github.com/GRIFORTIS/schiavinato-sharing-js/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/GRIFORTIS/schiavinato-sharing-js/discussions)
-- 📧 **Email**: support@grifortis.com
-
----
-
-**Made with ❤️ by [GRIFORTIS](https://github.com/GRIFORTIS)**
-
-*Empowering digital sovereignty through open-source tools.*
+[MIT License](LICENSE)
 
