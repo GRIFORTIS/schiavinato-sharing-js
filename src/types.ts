@@ -59,10 +59,10 @@ export interface RecoveryResult {
     /** Generic error message (e.g., invalid inputs, structural errors) */
     generic: string | null;
     
-    /** v0.4.0: Array of row indices where Path A and Path B checksums disagree */
+    /** Introduced in v0.4.0: Array of row indices where Path A and Path B checksums disagree */
     rowPathMismatch?: number[];
     
-    /** v0.4.0: True if Path A and Path B Global Integrity Check (GIC) disagree */
+    /** Introduced in v0.4.0: True if Path A and Path B Global Integrity Check (GIC) disagree */
     globalPathMismatch?: boolean;
   };
   

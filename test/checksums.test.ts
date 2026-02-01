@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { computeRowChecks, computeGlobalIntegrityCheck } from '../src/schiavinato/checksums';
 
 describe('Schiavinato Checksums', () => {
-  // Test vector from TEST_VECTORS.md (v0.5.0 - 1-based indices)
+  // Test vector from TEST_VECTORS.md (1-based indices)
   const testWordIndices = [1680, 1471, 217, 42, 1338, 279, 1907, 324, 468, 682, 1844, 126];
   
   describe('computeRowChecks', () => {

@@ -4,7 +4,7 @@
  * This module provides utilities for generating valid BIP39 mnemonics
  * plus helper conversions used by the validator tool.
  * 
- * v0.5.0: Uses native BIP39 implementation with 1-based indexing throughout.
+ * Introduced in v0.4.0: Uses native BIP39 implementation with 1-based indexing throughout.
  */
 
 import { generateBip39Mnemonic } from '../bip39/generate.js';

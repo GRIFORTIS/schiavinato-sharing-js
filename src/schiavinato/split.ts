@@ -17,7 +17,7 @@ import type { Share, SplitOptions } from '../types.js';
 /**
  * Splits a BIP39 mnemonic into n Shamir shares with threshold k.
  * 
- * Implements the Schiavinato Sharing scheme (v0.5.0):
+ * Implements the Schiavinato Sharing scheme:
  * 1. Validates the BIP39 mnemonic
  * 2. Converts words to 1-based indices (1-2048) - native implementation
  * 3. Creates degree-(k-1) polynomials for word secrets
@@ -26,11 +26,11 @@ import type { Share, SplitOptions } from '../types.js';
  *    - Path A: Sum of word shares (mod 2053) - direct computation
  *    - Path B: Polynomial-based - sum polynomial coefficients, then evaluate
  * 
- * v0.5.0 Change: Native 1-based BIP39 implementation. All word-to-ID conversions
+ * Introduced in v0.4.0: Native 1-based BIP39 implementation. All word-to-ID conversions
  * use O(1) lookup functions with no +1/-1 operations. This eliminates off-by-one
  * bugs and ensures share values match TEST_VECTORS.md exactly.
  * 
- * v0.4.0 Change: Implements dual-path checksum validation to detect bit flips
+ * Introduced in v0.4.0: Implements dual-path checksum validation to detect bit flips
  * and hardware faults. Checksum polynomials are created by summing word polynomial
  * coefficients, then evaluated at each share point. Both paths must agree, providing
  * redundant validation that catches corruption during share generation.
@@ -108,7 +108,7 @@ export async function splitMnemonic(
     randomPolynomial(secret, degree)
   );
   
-  // v0.4.0: Compute checksum polynomials (Path B)
+  // Introduced in v0.4.0: Compute checksum polynomials (Path B)
   // These are created by summing word polynomial coefficients
   const rowCheckPolynomials = computeRowCheckPolynomials(wordPolynomials);
   const globalIntegrityCheckPolynomial = computeGlobalIntegrityCheckPolynomial(wordPolynomials);
@@ -130,9 +130,9 @@ export async function splitMnemonic(
         share.wordShares.push(evaluatePolynomial(polynomial, shareIndex));
       }
       
-      // v0.4.0: Dual-path checksum validation
+      // Introduced in v0.4.0: Dual-path checksum validation
       // Path A: Direct sum of word shares (original v0.3.0 method)
-      // Path B: Evaluate checksum polynomials (new v0.4.0 method)
+      // Path B: Evaluate checksum polynomials (introduced in v0.4.0)
       // Both paths must agree to detect bit flips and hardware faults
       
       const rowCount = wordIndices.length / WORDS_PER_ROW;

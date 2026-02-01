@@ -31,12 +31,12 @@ import type { ShareData, RecoveryResult, RecoverOptions } from '../types.js';
  * 1. Validates share structure and uniqueness
  * 2. Uses Lagrange interpolation to recover word indices
  * 3. Uses Lagrange interpolation to recover checksums
- * 4. v0.4.0: Validates dual-path checksums (Path A vs Path B)
+ * 4. Validates dual-path checksums (Path A vs Path B)
  * 5. Validates row checksums
  * 6. Validates Global Integrity Check (GIC)
  * 7. Validates BIP39 checksum (if previous checks pass)
  * 
- * v0.4.0 Change: Implements dual-path checksum validation during recovery.
+ * Introduced in v0.4.0: Implements dual-path checksum validation during recovery.
  * Path A computes checksums from recovered word values (recompute).
  * Path B uses the interpolated checksum shares directly.
  * Both paths must agree to confirm no bit flips or hardware faults occurred.
@@ -142,7 +142,7 @@ export async function recoverMnemonic(
     }));
     recoveredGlobalIntegrityCheck = lagrangeInterpolateAtZero(globalIntegrityCheckPoints);
     
-    // 3. Perform internal Schiavinato validations with dual-path checking (v0.4.0)
+    // 3. Perform internal Schiavinato validations with dual-path checking (introduced in v0.4.0)
     // Path A: Recompute checksums from recovered words (direct computation)
     const recomputedChecks = computeRowChecks(recoveredWords);
     const recomputedGlobalIntegrityCheck = computeGlobalIntegrityCheck(recoveredWords);

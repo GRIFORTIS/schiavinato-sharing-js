@@ -7,7 +7,7 @@
  * Shamir's Secret Sharing with additional checksums for error detection
  * and manual recovery capability.
  * 
- * v0.5.0: Native 1-based BIP39 implementation with embedded wordlist.
+ * Introduced in v0.4.0: Native 1-based BIP39 implementation with embedded wordlist.
  * All word-to-ID conversions use O(1) lookups with no +1/-1 operations.
  * 
  * @packageDocumentation
@@ -105,7 +105,7 @@ export {
 export { validateBip39Mnemonic } from './bip39/validation.js';
 
 // Library version
-export const VERSION = '0.5.0';
+export const VERSION = '0.4.1';
 
 /**
  * Main entry point namespace for backward compatibility with HTML tool.

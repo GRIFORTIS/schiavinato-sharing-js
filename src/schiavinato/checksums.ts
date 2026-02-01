@@ -4,7 +4,7 @@
  * This module implements the per-row checksums and Global Integrity Check (GIC) that are
  * unique to the Schiavinato Sharing scheme.
  * 
- * v0.4.0: Implements dual-path checksum validation (Path A and Path B)
+ * Introduced in v0.4.0: Implements dual-path checksum validation (Path A and Path B)
  * to detect bit flips and hardware faults.
  */
 

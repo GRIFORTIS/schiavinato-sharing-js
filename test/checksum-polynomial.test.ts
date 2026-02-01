@@ -1,5 +1,5 @@
 /**
- * Tests for dual-path checksum validation (v0.4.0)
+ * Tests for dual-path checksum validation (introduced in v0.4.0)
  * 
  * These tests verify that Path A (direct sum) and Path B (polynomial evaluation)
  * produce identical results and can detect corruption/bit flips.
@@ -16,7 +16,7 @@ import {
 import { evaluatePolynomial } from '../src/core/polynomial';
 import { splitMnemonic, recoverMnemonic } from '../src/index';
 
-describe('Polynomial Checksum Functions (v0.4.0)', () => {
+describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
   describe('sumPolynomials', () => {
     it('should sum polynomial coefficients modulo 2053', () => {
       const poly1 = [100, 200, 300]; // 100 + 200x + 300x²
