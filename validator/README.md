@@ -1,6 +1,6 @@
 # Schiavinato Sharing Validator (JS Dev Tool)
 
-[![Security: Experimental](https://img.shields.io/badge/Security-⚠️%20EXPERIMENTAL%20⚠️-red)](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
+[![Security: Experimental](https://img.shields.io/badge/Security-⚠️%20EXPERIMENTAL%20⚠️-red)](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/SECURITY.md)
 [![CI](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -9,9 +9,9 @@
 > 
 >DO NOT USE IT FOR REAL FUNDS!
 >
-> Schiavinato Sharing specification and implementations have NOT been audited. Use for testing, learning, and experimentation only. See [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md) for details.
+> Schiavinato Sharing specification and implementations have NOT been audited. Use for testing, learning, and experimentation only. See [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/SECURITY.md) for details.
 >
->We invite **cryptographers** and **developers** to review the spec and software. See [CONTRIBUTING](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/CONTRIBUTING.md) to know more.
+>We invite **cryptographers** and **developers** to review the spec and software. See [CONTRIBUTING](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/CONTRIBUTING.md) to know more.
 
 Single-file, browser-based validator for the JavaScript/TypeScript library. This is a **development/auditing tool** for testing, conformance checks, and demonstrations — not a wallet tool.
 
@@ -32,8 +32,8 @@ It is distributed as a signed HTML file in GitHub Releases and can also be run l
 
 - **Main JS library**: [`../README`](../README.md)
 - **Canonical protocol + specs**: [schiavinato-sharing](https://github.com/GRIFORTIS/schiavinato-sharing)
-- **Test vectors**: [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
-- **Canonical security posture**: [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
+- **Test vectors**: [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/test_vectors/README.md)
+- **Canonical security posture**: [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/SECURITY.md)
 
 ---
 
@@ -43,7 +43,7 @@ This tool implements well-established cryptographic principles but has **NOT** b
 
 **Use only for**: testing, learning, experimentation.
 
-**Security policy / vulnerability reporting**: see the canonical process in `schiavinato-sharing/SECURITY.md`.
+**Security policy / vulnerability reporting**: see the canonical process in `schiavinato-sharing/.github/SECURITY.md`.
 
 ---
 
@@ -98,7 +98,7 @@ Download the latest validator HTML and verify it as described above, then open i
 ## Conformance Validation
 
 This validator complements automated testing and canonical test vectors:
-- [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
+- [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/test_vectors/README.md)
 
 ---
 

@@ -77,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eliminated off-by-one conversion bugs throughout codebase
 - Cross-implementation compatibility: JS shares recoverable by Python implementation
 - Manual recovery calculations now match computerized results
-- TEST_VECTORS.md validation passes completely
+- Canonical test vectors conformance passes (see `test_vectors/README.md` in the spec repo)
 - Polynomial construction uses correct 1-based secrets
 - Linting: Removed unused variable warnings
 
@@ -215,7 +215,7 @@ if (result.errors.global) { ... }
 - Row and global checksum computation and verification
 - TypeScript type definitions for all public APIs
 - Comprehensive test suite with 100% coverage
-- Integration tests using canonical test vectors from TEST_VECTORS.md
+- Integration tests using canonical test vectors (see `test_vectors/README.md` in the spec repo)
 - Support for both 12-word and 24-word mnemonics
 - Browser and Node.js compatibility
 - ESM, CommonJS, and UMD module formats

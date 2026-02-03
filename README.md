@@ -1,6 +1,6 @@
 # Schiavinato Sharing (JS/TS)
 
-[![Security: Experimental](https://img.shields.io/badge/Security-⚠️%20EXPERIMENTAL%20⚠️-red)](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
+[![Security: Experimental](https://img.shields.io/badge/Security-⚠️%20EXPERIMENTAL%20⚠️-red)](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/SECURITY.md)
 [![CI](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/GRIFORTIS/schiavinato-sharing-js/actions/workflows/codeql.yml)
 [![codecov](https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js/graph/badge.svg)](https://codecov.io/gh/GRIFORTIS/schiavinato-sharing-js)
@@ -12,9 +12,9 @@
 > 
 >DO NOT USE IT FOR REAL FUNDS!
 >
-> Schiavinato Sharing specification and implementations have NOT been audited. Use for testing, learning, and experimentation only. See [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md) for details.
+> Schiavinato Sharing specification and implementations have NOT been audited. Use for testing, learning, and experimentation only. See [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/SECURITY.md) for details.
 >
->We invite **cryptographers** and **developers** to review the spec and software. See [CONTRIBUTING](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/CONTRIBUTING.md) to know more.
+>We invite **cryptographers** and **developers** to review the spec and software. See [CONTRIBUTING](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/CONTRIBUTING.md) to know more.
 
 JavaScript/TypeScript implementation of **Schiavinato Sharing**: dual-mode (manual + software) \(k\)-of-\(n\) threshold secret sharing for **BIP39 mnemonics** over **GF(2053)**. Designed for offline/air-gapped workflows, with manual-fallback compatibility.
 
@@ -35,9 +35,9 @@ JavaScript/TypeScript implementation of **Schiavinato Sharing**: dual-mode (manu
 ## Links
 
 - **Canonical protocol + specs**: [schiavinato-sharing](https://github.com/GRIFORTIS/schiavinato-sharing)
-- **Whitepaper**: [PDF](https://github.com/GRIFORTIS/schiavinato-sharing/releases/latest/download/WHITEPAPER.pdf) | [LaTeX](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/WHITEPAPER.tex)
-- **Test Vectors**: [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
-- **Canonical security posture**: [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
+- **Whitepaper**: [PDF](https://github.com/GRIFORTIS/schiavinato-sharing/releases/latest/download/WHITEPAPER.pdf) | [LaTeX](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/whitepaper/WHITEPAPER.tex)
+- **Test Vectors**: [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/test_vectors/README.md)
+- **Canonical security posture**: [SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/SECURITY.md)
 - **HTML implementation**: [schiavinato-sharing-html](https://github.com/GRIFORTIS/schiavinato-sharing-html)
 - **Python implementation**: [schiavinato-sharing-py](https://github.com/GRIFORTIS/schiavinato-sharing-py)
 - **Validator (dev tool)**: [`validator/README.md`](./validator/README.md)
@@ -50,7 +50,7 @@ This library implements well-established cryptographic principles but has **NOT*
 
 **Use only for**: testing, learning, experimentation.
 
-**Canonical security posture**: [schiavinato-sharing/SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/SECURITY.md)
+**Canonical security posture**: [schiavinato-sharing/SECURITY](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/SECURITY.md)
 
 ---
 
@@ -145,7 +145,7 @@ Advanced exports (field arithmetic, Lagrange helpers, checksum helpers, secure w
 ## Conformance Validation
 
 This implementation is validated against canonical test vectors:
-- [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/TEST_VECTORS.md)
+- [TEST_VECTORS](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/test_vectors/README.md)
 
 ---
 
@@ -180,7 +180,7 @@ See [`validator/README`](./validator/README.md) for features, required validatio
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+See [`.github/CONTRIBUTING.md`](./.github/CONTRIBUTING.md).
 
 ---
 
