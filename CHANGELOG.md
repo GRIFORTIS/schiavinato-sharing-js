@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Centralize community health references (SECURITY / CONTRIBUTING / issue templates) to the org-wide defaults in `GRIFORTIS/.github`.
+- Update author email from `info@grifortis.com` to `contact@grifortis.com` in `package.json` and `validator/package.json`.
+
+### Removed
+- Repo-local `.github/SECURITY.md`, `.github/CONTRIBUTING.md`, `.github/ISSUE_TEMPLATE/bug_report.md`, and `.github/ISSUE_TEMPLATE/feature_request.md` in favor of org-wide defaults.
+
 ## [0.4.1] - 2026-02-01
 
 ### Security

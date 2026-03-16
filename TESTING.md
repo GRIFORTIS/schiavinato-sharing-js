@@ -35,4 +35,4 @@ When changing behavior, update tests so the implementation remains compatible wi
 
 ## Contributing
 
-See [CONTRIBUTING](https://github.com/GRIFORTIS/schiavinato-sharing/blob/main/.github/CONTRIBUTING.md).
+See [CONTRIBUTING](https://github.com/GRIFORTIS/.github/blob/main/CONTRIBUTING.md).
