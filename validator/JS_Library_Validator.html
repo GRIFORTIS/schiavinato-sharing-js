@@ -1,7 +1,7 @@
 
 <html lang="en">
 <!-- 
-    Schiavinato Sharing Validator v0.4.1
+    DuraShare Validator v0.5.0
     
     This version number is automatically synchronized with the main library.
     Do not manually edit - use 'npm run build:validator' to update.
@@ -25,7 +25,7 @@ CRITICAL WARNINGS:
    DO NOT use in air-gapped environments for real funds.
 
 3. VERIFY BEFORE USE
-   Download from: github.com/GRIFORTIS/schiavinato-sharing-js/releases
+   Download from: github.com/GRIFORTIS/durashare-js/releases
    Verify GPG signature before use - see repository README
    Expected GPG fingerprint: 7921 FD56 9450 8DA4 020E  671F 4CFE 6248 C57F 15DF
 
@@ -34,18 +34,18 @@ CRITICAL WARNINGS:
    or damages resulting from using this software.
 
 For PRODUCTION use with real crypto assets:
-- Use the air-gapped HTML implementation: github.com/GRIFORTIS/schiavinato-sharing-html
+- Use the air-gapped HTML implementation: github.com/GRIFORTIS/durashare-html
 - That tool is self-contained with zero external dependencies
 
 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schiavinato Sharing - JS Library Validator</title>
+    <title>DuraShare - JS Library Validator</title>
     
     <style>
         /* ==========================================================================
-        GRIFORTIS - DESIGN SYSTEM (v0.4.1)
+        GRIFORTIS - DESIGN SYSTEM (v0.5.0)
         ==========================================================================
         */
 
@@ -483,7 +483,7 @@ For PRODUCTION use with real crypto assets:
 <body>
     <!-- HEADER -->
     <header class="header">
-        <h1>Schiavinato Sharing - JS Library Validator</h1>
+        <h1>DuraShare - JS Library Validator</h1>
     </header>
     
     <div class="container">
@@ -495,7 +495,7 @@ For PRODUCTION use with real crypto assets:
                 <strong>TESTING TOOL ONLY - NOT FOR PRODUCTION USE</strong>
             </div>
             
-            <p>This tool is designed to test and validate the Schiavinato Sharing JavaScript library. It is <strong>NOT</strong> intended for use with real cryptocurrency wallets or sensitive data.</p>
+            <p>This tool is designed to test and validate the DuraShare JavaScript library. It is <strong>NOT</strong> intended for use with real cryptocurrency wallets or sensitive data.</p>
             
             <ul style="padding-left: 25px; margin-top: 1em; margin-bottom: 2em;">
                 <li style="margin-bottom: 1em;"><strong>Testing Only:</strong> Do not use generated seeds for real cryptocurrency wallets.</li>
@@ -611,7 +611,7 @@ For TEST_VECTORS: Enter comma-separated values.
 
             <!-- 3. VIEW & SELECT SHARES -->
             <section class="component-card" id="shares-section">
-                <h2>Schiavinato Shares</h2>
+                <h2>DuraShare Shares</h2>
                 <div id="shares-container" class="grid-container">
                     <!-- Shares will be dynamically generated here -->
                 </div>
@@ -644,7 +644,7 @@ For TEST_VECTORS: Enter comma-separated values.
         <!-- FOOTER -->
         <footer class="footer">
             <!-- VERSION: Auto-updated by build:validator script - do not manually edit -->
-            <p><strong>GRIFORTIS Schiavinato Sharing - JS Library Validator v0.4.1</strong><br>
+            <p><strong>GRIFORTIS DuraShare - JS Library Validator v0.5.0</strong><br>
             <span style="color: var(--text-muted);">MIT License · Testing Tool · Not for Production Use</span></p>
         </footer>
     </div>
@@ -677,17 +677,17 @@ For TEST_VECTORS: Enter comma-separated values.
     <script type="module">
         // MODULE LOADER
         try {
-            console.log('🔄 Loading Schiavinato Sharing library (ESM build)...');
+            console.log('🔄 Loading DuraShare library (ESM build)...');
             // Cache-busting query string to avoid stale ESM module caching during local testing.
             const SS = await import(`../dist/index.mjs?v=${Date.now()}`);
-            window.SchiavinatoSharing = SS;
-            console.log('✅ Schiavinato Sharing library loaded successfully');
+            window.DuraShare = SS;
+            console.log('✅ DuraShare library loaded successfully');
             console.log('📌 Library version:', SS.VERSION);
-            window.dispatchEvent(new CustomEvent('schiavinato-library-ready'));
+            window.dispatchEvent(new CustomEvent('durashare-library-ready'));
             console.log('🎉 Library ready for testing');
         } catch (error) {
             console.error('❌ Failed to load library:', error);
-            alert(`Failed to load the Schiavinato Sharing library!\n\nError: ${error.message}`);
+            alert(`Failed to load the DuraShare library!\n\nError: ${error.message}`);
         }
     </script>
     
@@ -697,8 +697,8 @@ For TEST_VECTORS: Enter comma-separated values.
         let currentN = 3;
         let currentShares = [];
         
-        window.addEventListener('schiavinato-library-ready', () => {
-            const SS = window.SchiavinatoSharing;
+        window.addEventListener('durashare-library-ready', () => {
+            const SS = window.DuraShare;
             console.log('📚 Native BIP39 implementation loaded with 1-based indexing');
             console.log('✅ Library version:', SS.VERSION);
         });
@@ -865,7 +865,7 @@ For TEST_VECTORS: Enter comma-separated values.
          * Generates shares and returns the polynomials used (even for random generation).
          */
         async function splitMnemonicForValidator(mnemonic, k, n, mode, customCoefficients) {
-            const SS = window.SchiavinatoSharing;
+            const SS = window.DuraShare;
             
             // Validate inputs
             const parsed = SS.parseInput(mnemonic);
@@ -922,6 +922,7 @@ For TEST_VECTORS: Enter comma-separated values.
             
             // Compute checksum polynomials (using library)
             const rowCheckPolynomials = SS.computeRowCheckPolynomials(wordPolynomials);
+            const columnCheckPolynomials = SS.computeColumnCheckPolynomials(wordPolynomials);
             const globalCheckPolynomial = SS.computeGlobalIntegrityCheckPolynomial(wordPolynomials);
             
             // Generate shares
@@ -931,6 +932,7 @@ For TEST_VECTORS: Enter comma-separated values.
                     shareNumber: shareIndex,
                     wordShares: [],
                     checksumShares: [],
+                    columnChecksumShares: [],
                     globalIntegrityCheckShare: 0
                 };
                 
@@ -939,12 +941,17 @@ For TEST_VECTORS: Enter comma-separated values.
                     share.wordShares.push(SS.evaluatePolynomial(poly, shareIndex));
                 }
                 
-                // Evaluate checksum polynomials
+                // Evaluate row checksum polynomials
                 for (const poly of rowCheckPolynomials) {
                     share.checksumShares.push(SS.evaluatePolynomial(poly, shareIndex));
                 }
+
+                // Evaluate column checksum polynomials
+                for (const poly of columnCheckPolynomials) {
+                    share.columnChecksumShares.push(SS.evaluatePolynomial(poly, shareIndex));
+                }
                 
-                // GIC
+                // Printed GIC = unbound + shareIndex
                 const gicBase = SS.evaluatePolynomial(globalCheckPolynomial, shareIndex);
                 share.globalIntegrityCheckShare = SS.modAdd(gicBase, shareIndex);
                 
@@ -956,6 +963,7 @@ For TEST_VECTORS: Enter comma-separated values.
                 polynomials: {
                     word: wordPolynomials,
                     rowCheck: rowCheckPolynomials,
+                    columnCheck: columnCheckPolynomials,
                     globalCheck: globalCheckPolynomial
                 }
             };
@@ -1013,7 +1021,7 @@ For TEST_VECTORS: Enter comma-separated values.
         function displayPolynomials(polynomials) {
             if (!polynomials) return;
             
-            const { word, rowCheck, globalCheck } = polynomials;
+            const { word, rowCheck, columnCheck, globalCheck } = polynomials;
             
             // Display word polynomials
             let wordText = '';
@@ -1029,18 +1037,23 @@ For TEST_VECTORS: Enter comma-separated values.
                 const rowNum = i + 1;
                 checksumText += `f_c${rowNum}(x) = ${formatPolynomial(poly)}\n`;
             });
+            if (columnCheck) {
+                columnCheck.forEach((poly, i) => {
+                    checksumText += `f_Col${i + 1}(x) = ${formatPolynomial(poly)}\n`;
+                });
+            }
             document.getElementById('polynomial-checksums').value = checksumText;
             
             // Display GIC polynomial
             document.getElementById('polynomial-gic').value = 
-                `f_GIC_base(x) = ${formatPolynomial(globalCheck)}\n\n` +
-                `Note: Share value = f_GIC_base(x) + x\n` +
-                `This ensures share number is embedded in validation.`;
+                `f_GIC_unbound(x) = ${formatPolynomial(globalCheck)}\n\n` +
+                `Note: Printed share value = f_GIC_unbound(x) + x\n` +
+                `Unbound includes rowTotal + columnTotal (60).`;
         }
         
         async function generateSeed(wordCount, format) {
             try {
-                const SS = window.SchiavinatoSharing;
+                const SS = window.DuraShare;
                 if (!SS) { return showModal('Error', 'Library not loaded.'); }
                 
                 const mnemonic = SS.generateValidMnemonic(wordCount);
@@ -1057,7 +1070,7 @@ For TEST_VECTORS: Enter comma-separated values.
         
         async function createShares() {
             try {
-                const SS = window.SchiavinatoSharing;
+                const SS = window.DuraShare;
                 if (!SS) { return showModal('Error', 'Library not loaded.'); }
                 
                 const seedInput = document.getElementById('seed-input').value.trim();
@@ -1131,6 +1144,11 @@ For TEST_VECTORS: Enter comma-separated values.
                             idsArray.push(share.checksumShares[checksumIdx]);
                         }
                     }
+
+                    for (let col = 0; col < share.columnChecksumShares.length; col++) {
+                        wordsArray.push(getWordOrId(share.columnChecksumShares[col]));
+                        idsArray.push(share.columnChecksumShares[col]);
+                    }
                     
                     document.getElementById(`share-${shareNum}-words`).value = wordsArray.join('\n');
                     document.getElementById(`share-${shareNum}-ids`).value = idsArray.join('\n');
@@ -1146,7 +1164,7 @@ For TEST_VECTORS: Enter comma-separated values.
         }
         
         function getWordOrId(value) {
-            const SS = window.SchiavinatoSharing;
+            const SS = window.DuraShare;
             // Use native 1-based lookup (no conversions)
             try {
                 return SS.bip39IdToWord(value);
@@ -1194,7 +1212,7 @@ For TEST_VECTORS: Enter comma-separated values.
         
         async function recoverWallet() {
             try {
-                const SS = window.SchiavinatoSharing;
+                const SS = window.DuraShare;
                 if (!SS) { return showModal('Error', 'Library not loaded.'); }
 
                 const selectedShareNums = Array.from(document.querySelectorAll('#shares-container input:checked'))
@@ -1212,6 +1230,9 @@ For TEST_VECTORS: Enter comma-separated values.
                     const ids = idsText.split(/[\s,\n]+/).map(id => parseInt(id)).filter(id => !isNaN(id));
                     
                     const globalIntegrityCheckShare = ids.shift();
+                    const columnChecksumShares = ids.length >= 3
+                        ? ids.splice(ids.length - 3, 3)
+                        : [undefined, undefined, undefined];
                     const wordShares = [];
                     const checksumShares = [];
                     
@@ -1223,27 +1244,33 @@ For TEST_VECTORS: Enter comma-separated values.
                         }
                     }
                     
-                    sharesToRecover.push({ shareNumber: shareNum, wordShares, checksumShares, globalIntegrityCheckShare });
+                    sharesToRecover.push({
+                        shareNumber: shareNum,
+                        wordShares,
+                        checksumShares,
+                        columnChecksumShares,
+                        globalIntegrityCheckShare
+                    });
                 }
                 
                 const wordCount = sharesToRecover[0].wordShares.length;
-                const result = await SS.recoverMnemonic(sharesToRecover, wordCount);
+                const result = await SS.recoverAndValidate(sharesToRecover, wordCount);
                 
                 const recoveredOutput = document.getElementById('recovered-output');
                 const validationStatus = document.getElementById('validation-status');
 
                 if (result.success) {
-                    recoveredOutput.value = result.mnemonic.split(' ').join('\n');
+                    recoveredOutput.value = result.recoveredMnemonic.split(' ').join('\n');
                     validationStatus.innerHTML = '<div class="alert alert-success">✓ Recovery successful! BIP39 checksum VALID</div>';
                 } else {
-                    let errorMsg = 'Recovery failed:\n' + (result.errors.row.length > 0 ? `- Row checksum errors in rows: ${result.errors.row.join(', ')}\n` : '') + (result.errors.global ? '- Global verification failed\n' : '') + (result.errors.bip39 ? '- BIP39 checksum invalid\n' : '') + (result.errors.generic ? `- ${result.errors.generic}\n` : '');
+                    let errorMsg = 'Recovery failed:\n' + (result.errors.row.length > 0 ? `- Row checksum errors in rows: ${result.errors.row.join(', ')}\n` : '') + (result.errors.column && result.errors.column.length > 0 ? `- Column checksum errors in cols: ${result.errors.column.map(c => c + 1).join(', ')}\n` : '') + (result.errors.global ? '- Global verification failed\n' : '') + (result.errors.bip39 ? '- BIP39 checksum invalid\n' : '') + (result.errors.generic ? `- ${result.errors.generic}\n` : '');
                     
-                    if (result.mnemonic) {
-                        recoveredOutput.value = result.mnemonic.split(' ').join('\n');
+                    if (result.recoveredMnemonic) {
+                        recoveredOutput.value = result.recoveredMnemonic.split(' ').join('\n');
                         validationStatus.innerHTML = '<div class="alert alert-error">✗ BIP39 checksum INVALID</div>';
                     }
                     // Only show modal for more severe errors
-                    if (result.errors.row.length > 0 || result.errors.global || result.errors.generic) {
+                    if (result.errors.row.length > 0 || result.errors.global || result.errors.generic || (result.errors.column && result.errors.column.length > 0)) {
                         showModal('Recovery Errors', errorMsg);
                     }
                 }
@@ -1256,7 +1283,7 @@ For TEST_VECTORS: Enter comma-separated values.
         
         async function validateRecovered() {
             try {
-                const SS = window.SchiavinatoSharing;
+                const SS = window.DuraShare;
                 if (!SS) { return showModal('Error', 'Library not loaded.'); }
                 
                 const recovered = document.getElementById('recovered-output').value.trim();

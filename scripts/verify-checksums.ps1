@@ -1,4 +1,4 @@
-# Verify SHA256 checksums for @grifortis/schiavinato-sharing (Windows PowerShell)
+# Verify SHA256 checksums for DuraShare (JS) (Windows PowerShell)
 #
 # Usage:
 #   .\scripts\verify-checksums.ps1 [version]
@@ -12,10 +12,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Repo = "GRIFORTIS/schiavinato-sharing-js"
+$Repo = "GRIFORTIS/durashare-js"
 $ChecksumsFile = "CHECKSUMS-LIBRARY.txt"
 
-Write-Host "🔐 Verifying checksums for @grifortis/schiavinato-sharing" -ForegroundColor Cyan
+Write-Host "🔐 Verifying checksums for DuraShare (JS)" -ForegroundColor Cyan
 Write-Host ""
 
 # Download checksums from GitHub release

@@ -6,7 +6,7 @@
  */
 
 import { FIELD_PRIME } from '../core/field.js';
-import type { RandomSource } from '../types.js';
+import type { EnvironmentOptions, RandomSource } from '../types.js';
 
 // Detect runtime environment and set up random source
 const globalScope = typeof globalThis !== 'undefined' 
@@ -42,27 +42,33 @@ if (!randomSource) {
 }
 
 /**
- * Configures the random source (useful for testing or non-standard environments).
- * 
- * @param source - An object with a getRandomValues method
- * @throws {Error} If the source doesn't have a valid getRandomValues method
- * 
- * @example
- * // For testing with deterministic random values
- * configureRandomSource({
- *   getRandomValues(array) {
- *     // Fill with deterministic values
- *     for (let i = 0; i < array.length; i++) {
- *       array[i] = 42;
- *     }
- *   }
- * });
+ * Override randomness (and optionally SHA-256) for tests / non-browser hosts.
+ * Aligned with the HTML tool's configureEnvironment.
+ */
+export function configureEnvironment(options: EnvironmentOptions = {}): void {
+  const { randomSource: newRandomSource, sha256: newSha256 } = options;
+  if (newRandomSource !== undefined) {
+    if (!newRandomSource || typeof newRandomSource.getRandomValues !== 'function') {
+      throw new Error('randomSource must expose getRandomValues(Uint32Array).');
+    }
+    randomSource = newRandomSource;
+  }
+  if (newSha256 !== undefined) {
+    if (
+      typeof newSha256 !== 'function' ||
+      typeof newSha256.arrayBuffer !== 'function'
+    ) {
+      throw new Error('sha256 must have a callable arrayBuffer(message) helper.');
+    }
+    // Reserved for HTML parity; JS BIP39 validation uses @noble/hashes today.
+  }
+}
+
+/**
+ * Configures the random source only (thin wrapper over configureEnvironment).
  */
 export function configureRandomSource(source: RandomSource): void {
-  if (!source || typeof source.getRandomValues !== 'function') {
-    throw new Error('randomSource must expose getRandomValues(Uint32Array).');
-  }
-  randomSource = source;
+  configureEnvironment({ randomSource: source });
 }
 
 /**

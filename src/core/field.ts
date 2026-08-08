@@ -1,7 +1,7 @@
 /**
  * Galois Field GF(2053) Arithmetic
  * 
- * This module implements the core field arithmetic operations for Schiavinato Sharing.
+ * This module implements the core field arithmetic operations for DuraShare.
  * All operations are performed modulo the prime 2053.
  * 
  * The prime 2053 was chosen because:

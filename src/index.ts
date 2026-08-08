@@ -1,24 +1,18 @@
 /**
- * Schiavinato Sharing - JavaScript/TypeScript Library
- * 
+ * DuraShare - JavaScript/TypeScript Library
+ *
  * Human-executable secret sharing for BIP39 mnemonics using GF(2053).
- * 
- * This library implements the Schiavinato Sharing scheme, which extends
- * Shamir's Secret Sharing with additional checksums for error detection
- * and manual recovery capability.
- * 
- * Introduced in v0.4.0: Native 1-based BIP39 implementation with embedded wordlist.
- * All word-to-ID conversions use O(1) lookups with no +1/-1 operations.
- * 
+ *
+ * Implements the DuraShare scheme (protocol v0.5.0): Shamir sharing with
+ * position-bound row checksums, column checksums, and printed GIC.
+ *
  * @packageDocumentation
  */
 
-// Export main API functions
-export { splitMnemonic } from './schiavinato/split.js';
-export { recoverMnemonic } from './schiavinato/recover.js';
+export { splitBip39 } from './durashare/split.js';
+export { recoverAndValidate } from './durashare/recover.js';
 
-// Export field arithmetic (for advanced use)
-export { 
+export {
   FIELD_PRIME,
   mod,
   modAdd,
@@ -27,38 +21,42 @@ export {
   modInv
 } from './core/field.js';
 
-// Export Lagrange functions (for manual recovery)
-export { 
+export {
   computeLagrangeMultipliers,
-  lagrangeInterpolateAtZero 
+  lagrangeInterpolateAtZero
 } from './core/lagrange.js';
 
-// Export polynomial functions (for testing/verification)
-export { 
+export {
   randomPolynomial,
-  evaluatePolynomial 
+  evaluatePolynomial
 } from './core/polynomial.js';
 
-// Export checksum functions (for verification)
-export { 
+export {
   computeRowChecks,
+  computeColumnChecks,
   computeGlobalIntegrityCheck,
+  computeRowTotal,
   sumPolynomials,
   computeRowCheckPolynomials,
-  computeGlobalIntegrityCheckPolynomial
-} from './schiavinato/checksums.js';
+  computeColumnCheckPolynomials,
+  computeGlobalIntegrityCheckPolynomial,
+  addConstantTerm
+} from './durashare/checksums.js';
 
-// Export utility functions
-export { 
+export {
   sanitizeMnemonic,
   ensureSupportedWordCount,
   normalizeShareValue,
   validateSharesForRecovery,
   ensureShareNumbersDistinct,
-  WORDS_PER_ROW
+  auditOptionalChecksums,
+  WORDS_PER_ROW,
+  COLUMN_TAGS,
+  COLUMN_TOTAL
 } from './utils/validation.js';
 
 export {
+  configureEnvironment,
   configureRandomSource,
   getRandomIntInclusive,
   getRandomFieldElement
@@ -71,27 +69,27 @@ export {
   parseInput
 } from './utils/seedGenerator.js';
 
-// Export security utilities (for advanced security-conscious use)
 export {
   constantTimeEqual,
   constantTimeStringEqual,
+  clearSensitiveArray,
   secureWipeArray,
   secureWipeNumber,
   wipeString
 } from './utils/security.js';
 
-// Export all TypeScript types
 export type {
   Share,
   ShareData,
   RecoveryResult,
+  SplitResult,
   SplitOptions,
   RecoverOptions,
   RandomSource,
+  EnvironmentOptions,
   Point
 } from './types.js';
 
-// Export native BIP39 module
 export {
   BIP39_WORDLIST as englishWordlist,
   wordToBip39Id,
@@ -101,19 +99,21 @@ export {
   validateBip39Mnemonic as validateBip39MnemonicNative
 } from './bip39/index.js';
 
-// Export BIP39 validation with simple API
-export { validateBip39Mnemonic } from './bip39/validation.js';
-
-// Library version
-export const VERSION = '0.4.1';
+import { validateBip39Mnemonic } from './bip39/validation.js';
+export { validateBip39Mnemonic };
 
 /**
- * Main entry point namespace for backward compatibility with HTML tool.
- * 
- * @example
- * import * as SchiavinatoSharing from '@grifortis/schiavinato-sharing';
- * 
- * const shares = await SchiavinatoSharing.splitMnemonic(mnemonic, 2, 3);
- * const result = await SchiavinatoSharing.recoverMnemonic(shares, 12);
+ * HTML-aligned name: validates BIP39 and throws on failure; returns true on success.
  */
+export async function validateBIP39Mnemonic(
+  mnemonic: string,
+  _wordlist?: readonly string[]
+): Promise<true> {
+  if (!validateBip39Mnemonic(mnemonic)) {
+    throw new Error('Mnemonic checksum is invalid.');
+  }
+  return true;
+}
 
+/** Library version (protocol-aligned with HTML v0.5.0 share-table subset) */
+export const VERSION = '0.5.0';

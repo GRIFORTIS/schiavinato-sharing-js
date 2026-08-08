@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Build script for Schiavinato Sharing Validator
+ * Build script for DuraShare Validator
  * 
  * This script:
  * 1. Reads the current version from package.json
@@ -21,7 +21,7 @@ const packageJsonPath = path.join(rootDir, 'package.json');
 const validatorPackageJsonPath = path.join(validatorDir, 'package.json');
 const htmlPath = path.join(validatorDir, 'JS_Library_Validator.html');
 
-console.log('🔨 Building Schiavinato Sharing Validator...\n');
+console.log('🔨 Building DuraShare Validator...\n');
 
 // Read version from main package.json
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
@@ -41,8 +41,8 @@ let html = fs.readFileSync(htmlPath, 'utf8');
 // Inject version into HTML (replace existing version markers)
 // 1) Header comment (top-of-file)
 html = html.replace(
-  /Schiavinato Sharing Validator v[\d.]+/g,
-  `Schiavinato Sharing Validator v${version}`
+  /DuraShare Validator v[\d.]+/g,
+  `DuraShare Validator v${version}`
 );
 
 // 2) Design system marker (purely informational)
@@ -53,15 +53,15 @@ html = html.replace(
 
 // 3) Footer version (authoritative)
 html = html.replace(
-  /<p><strong>GRIFORTIS Schiavinato Sharing - JS Library Validator v[\d.]+<\/strong>/,
-  `<p><strong>GRIFORTIS Schiavinato Sharing - JS Library Validator v${version}</strong>`
+  /<p><strong>GRIFORTIS DuraShare - JS Library Validator v[\d.]+<\/strong>/,
+  `<p><strong>GRIFORTIS DuraShare - JS Library Validator v${version}</strong>`
 );
 
 // If no footer version found, add version comment at the top
 if (!html.includes(`v${version}</strong>`)) {
   html = html.replace(
     /<html lang="en">/,
-    `<html lang="en">\n<!-- Schiavinato Sharing Validator v${version} -->`
+    `<html lang="en">\n<!-- DuraShare Validator v${version} -->`
   );
 }
 
@@ -82,17 +82,17 @@ if (!fs.existsSync(standaloneDir)) {
   fs.mkdirSync(standaloneDir, { recursive: true });
 }
 
-const standalonePath = path.join(standaloneDir, `schiavinato-validator-v${version}.html`);
+const standalonePath = path.join(standaloneDir, `durashare-validator-v${version}.html`);
 fs.copyFileSync(htmlPath, standalonePath);
 
 const standaloneChecksumPath = `${standalonePath}.sha256`;
-fs.writeFileSync(standaloneChecksumPath, `${hash}  schiavinato-validator-v${version}.html\n`);
-console.log(`✓ Created standalone: validator/dist/schiavinato-validator-v${version}.html`);
+fs.writeFileSync(standaloneChecksumPath, `${hash}  durashare-validator-v${version}.html\n`);
+console.log(`✓ Created standalone: validator/dist/durashare-validator-v${version}.html`);
 
 // Verify version consistency
 console.log('\n🔍 Verifying version consistency...');
 const footerVersion = html.match(
-  /GRIFORTIS Schiavinato Sharing - JS Library Validator v([\d.]+)<\/strong>/
+  /GRIFORTIS DuraShare - JS Library Validator v([\d.]+)<\/strong>/
 );
 if (footerVersion && footerVersion[1] === version) {
   console.log(`✓ Version ${version} verified in HTML`);

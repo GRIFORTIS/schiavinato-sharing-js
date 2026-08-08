@@ -1,81 +1,72 @@
 /**
- * Tests for Schiavinato checksum functions
+ * Tests for DuraShare checksum functions (protocol v0.5.0)
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeRowChecks, computeGlobalIntegrityCheck } from '../src/schiavinato/checksums';
+import {
+  computeRowChecks,
+  computeColumnChecks,
+  computeGlobalIntegrityCheck,
+  computeRowTotal
+} from '../src/durashare/checksums';
 
-describe('Schiavinato Checksums', () => {
-  // Test vector from TEST_VECTORS.md (1-based indices)
+describe('DuraShare Checksums', () => {
+  // Frozen v0.5.0 vector indices
   const testWordIndices = [1680, 1471, 217, 42, 1338, 279, 1907, 324, 468, 682, 1844, 126];
-  
+
   describe('computeRowChecks', () => {
-    it('should compute row checksums for test vector', () => {
+    it('should compute position-bound row checksums for v0.5.0 vector', () => {
       const checksums = computeRowChecks(testWordIndices);
-      
-      // From TEST_VECTORS.md:
-      // c1 = (1680 + 1471 + 217) mod 2053 = 1315
-      // c2 = (42 + 1338 + 279) mod 2053 = 1659
-      // c3 = (1907 + 324 + 468) mod 2053 = 646
-      // c4 = (682 + 1844 + 126) mod 2053 = 599
-      expect(checksums).toEqual([1315, 1659, 646, 599]);
+      // r1..r4 = sum(words) + rowNumber
+      expect(checksums).toEqual([1316, 1661, 649, 603]);
     });
 
     it('should handle 24-word mnemonic (8 rows)', () => {
-      const words24 = [
-        ...testWordIndices,
-        ...testWordIndices
-      ];
-      
+      const words24 = [...testWordIndices, ...testWordIndices];
       const checksums = computeRowChecks(words24);
       expect(checksums).toHaveLength(8);
     });
 
     it('should compute correct row count', () => {
-      const words12 = testWordIndices;
-      const checksums12 = computeRowChecks(words12);
-      expect(checksums12).toHaveLength(4); // 12 / 3 = 4 rows
+      expect(computeRowChecks(testWordIndices)).toHaveLength(4);
+      expect(computeRowChecks([...testWordIndices, ...testWordIndices])).toHaveLength(8);
+    });
+  });
 
-      const words24 = [...words12, ...words12];
-      const checksums24 = computeRowChecks(words24);
-      expect(checksums24).toHaveLength(8); // 24 / 3 = 8 rows
+  describe('computeColumnChecks', () => {
+    it('should compute column checksums with tags 10/20/30', () => {
+      expect(computeColumnChecks(testWordIndices)).toEqual([215, 891, 1120]);
     });
   });
 
   describe('computeGlobalIntegrityCheck', () => {
-    it('should compute Global Integrity Check (GIC) for test vector', () => {
-      const globalChecksum = computeGlobalIntegrityCheck(testWordIndices);
-      
-      // From TEST_VECTORS.md: G = 113
-      expect(globalChecksum).toBe(113);
+    it('should compute unbound GIC for v0.5.0 vector', () => {
+      // unbound = Σwords + rowTotal(10) + 60 = 183
+      expect(computeGlobalIntegrityCheck(testWordIndices)).toBe(183);
     });
 
-    it('should handle empty array', () => {
-      const globalChecksum = computeGlobalIntegrityCheck([]);
-      expect(globalChecksum).toBe(0);
-    });
-
-    it('should handle single value', () => {
-      const globalChecksum = computeGlobalIntegrityCheck([100]);
-      expect(globalChecksum).toBe(100);
-    });
-
-    it('should handle values that sum over field prime', () => {
-      const globalChecksum = computeGlobalIntegrityCheck([2000, 2000, 2000]);
-      // 6000 mod 2053 = 1894
-      expect(globalChecksum).toBe(1894);
+    it('should include row and column totals', () => {
+      const rowCount = 4;
+      expect(computeRowTotal(rowCount)).toBe(10);
     });
   });
 
   describe('checksum integration', () => {
-    it('should maintain relationship between row and global checks', () => {
+    it('should maintain GIC identity: words+R+60 ≡ rows+60 ≡ cols+R', () => {
       const rowChecks = computeRowChecks(testWordIndices);
-      const globalCheck = computeGlobalIntegrityCheck(testWordIndices);
-      
-      // Global check should equal sum of row checks (in GF(2053))
-      const sumOfRows = rowChecks.reduce((acc, val) => (acc + val) % 2053, 0);
-      expect(sumOfRows).toBe(globalCheck);
+      const colChecks = computeColumnChecks(testWordIndices);
+      const unbound = computeGlobalIntegrityCheck(testWordIndices);
+      const rowTotal = computeRowTotal(4);
+
+      const sumRows =
+        rowChecks.reduce((acc, val) => (acc + val) % 2053, 0);
+      const sumCols =
+        colChecks.reduce((acc, val) => (acc + val) % 2053, 0);
+      const wordSum = testWordIndices.reduce((acc, val) => (acc + val) % 2053, 0);
+
+      expect((sumRows + 60) % 2053).toBe(unbound);
+      expect((sumCols + rowTotal) % 2053).toBe(unbound);
+      expect((wordSum + rowTotal + 60) % 2053).toBe(unbound);
     });
   });
 });
-

@@ -12,9 +12,9 @@ import {
   computeGlobalIntegrityCheckPolynomial,
   computeRowChecks,
   computeGlobalIntegrityCheck
-} from '../src/schiavinato/checksums';
+} from '../src/durashare/checksums';
 import { evaluatePolynomial } from '../src/core/polynomial';
-import { splitMnemonic, recoverMnemonic } from '../src/index';
+import { splitBip39, recoverAndValidate } from '../src/index';
 
 describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
   describe('sumPolynomials', () => {
@@ -73,11 +73,11 @@ describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
       
       expect(rowPolys).toHaveLength(4);
       
-      // Row 0: sum of [1,2] + [3,4] + [5,6] = [9, 12]
-      expect(rowPolys[0]).toEqual([9, 12]);
+      // Row 0: sum + tag 1 → [9, 12] + 1 = [10, 12]
+      expect(rowPolys[0]).toEqual([10, 12]);
       
-      // Row 1: sum of [7,8] + [9,10] + [11,12] = [27, 30]
-      expect(rowPolys[1]).toEqual([27, 30]);
+      // Row 1: sum + tag 2 → [27, 30] + 2 = [29, 30]
+      expect(rowPolys[1]).toEqual([29, 30]);
     });
 
     it('should create row checksum polynomials for 24-word mnemonic', () => {
@@ -106,15 +106,16 @@ describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
   });
 
   describe('computeGlobalIntegrityCheckPolynomial', () => {
-    it('should create Global Integrity Check (GIC) polynomial', () => {
+    it('should create Global Integrity Check (GIC) polynomial with R+60', () => {
+      // 3 words = 1 row → rowTotal=1, COLUMN_TOTAL=60
       const wordPolynomials = [
         [1, 2], [3, 4], [5, 6]
       ];
       
       const globalPoly = computeGlobalIntegrityCheckPolynomial(wordPolynomials);
       
-      // Sum of all: [1+3+5, 2+4+6] = [9, 12]
-      expect(globalPoly).toEqual([9, 12]);
+      // Sum [9, 12] + 1 + 60 = [70, 12]
+      expect(globalPoly).toEqual([70, 12]);
     });
 
     it('should handle modulo wraparound', () => {
@@ -126,8 +127,8 @@ describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
       
       const globalPoly = computeGlobalIntegrityCheckPolynomial(wordPolynomials);
       
-      // (2000 + 2000 + 100) mod 2053 = 4100 mod 2053 = 2047
-      expect(globalPoly).toEqual([2047, 2047]);
+      // (2000+2000+100 + 1 + 60) mod 2053 = 2108 mod 2053 = 55
+      expect(globalPoly).toEqual([55, 2047]);
     });
   });
 
@@ -188,26 +189,27 @@ describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
     });
   });
 
-  describe('Integration with splitMnemonic', () => {
+  describe('Integration with splitBip39', () => {
     const testMnemonic = 'spin result brand ahead poet carpet unusual chronic denial festival toy autumn';
 
     it('should validate both paths during split (k=2)', async () => {
       // This should not throw - both paths should agree
-      const shares = await splitMnemonic(testMnemonic, 2, 3);
+      const { shares } = await splitBip39(testMnemonic, 2, 3);
       
       expect(shares).toHaveLength(3);
       expect(shares[0].checksumShares).toHaveLength(4);
+      expect(shares[0].columnChecksumShares).toHaveLength(3);
     });
 
     it('should validate both paths during split (k=3)', async () => {
-      const shares = await splitMnemonic(testMnemonic, 3, 5);
+      const { shares } = await splitBip39(testMnemonic, 3, 5);
       
       expect(shares).toHaveLength(5);
       expect(shares[0].checksumShares).toHaveLength(4);
     });
 
     it('should validate both paths during split (k=4)', async () => {
-      const shares = await splitMnemonic(testMnemonic, 4, 7);
+      const { shares } = await splitBip39(testMnemonic, 4, 7);
       
       expect(shares).toHaveLength(7);
       expect(shares[0].checksumShares).toHaveLength(4);
@@ -216,7 +218,7 @@ describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
     it('should work with 24-word mnemonics', async () => {
       const mnemonic24 = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art';
       
-      const shares = await splitMnemonic(mnemonic24, 2, 3);
+      const { shares } = await splitBip39(mnemonic24, 2, 3);
       
       expect(shares).toHaveLength(3);
       expect(shares[0].wordShares).toHaveLength(24);
@@ -224,22 +226,22 @@ describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
     });
   });
 
-  describe('Integration with recoverMnemonic', () => {
+  describe('Integration with recoverAndValidate', () => {
     const testMnemonic = 'spin result brand ahead poet carpet unusual chronic denial festival toy autumn';
 
     it('should validate both paths during recovery', async () => {
-      const shares = await splitMnemonic(testMnemonic, 2, 3);
+      const { shares } = await splitBip39(testMnemonic, 2, 3);
       
-      const result = await recoverMnemonic([shares[0], shares[1]], 12);
+      const result = await recoverAndValidate([shares[0], shares[1]], 12);
       
       expect(result.success).toBe(true);
-      expect(result.mnemonic).toBe(testMnemonic);
+      expect(result.recoveredMnemonic).toBe(testMnemonic);
       expect(result.errors.rowPathMismatch).toHaveLength(0);
       expect(result.errors.globalPathMismatch).toBe(false);
     });
 
     it('should detect checksum errors with corrupted checksum share', async () => {
-      const shares = await splitMnemonic(testMnemonic, 2, 3);
+      const { shares } = await splitBip39(testMnemonic, 2, 3);
       
       // Corrupt a checksum share with a valid but incorrect value
       const corruptedShare = {
@@ -249,18 +251,19 @@ describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
       const originalValue = corruptedShare.checksumShares[0];
       corruptedShare.checksumShares[0] = (originalValue + 100) % 2053;
       
-      const result = await recoverMnemonic([corruptedShare, shares[1]], 12);
+      const result = await recoverAndValidate([corruptedShare, shares[1]], 12);
       
       expect(result.success).toBe(false);
-      // Should detect checksum error (path mismatch, row error, or BIP39 failure)
-      const hasError = result.errors.rowPathMismatch!.length > 0 || 
-                      result.errors.row.length > 0 ||
-                      result.errors.bip39;
+      const hasError =
+        (result.errors.rowPathMismatch?.length ?? 0) > 0 ||
+        result.errors.row.length > 0 ||
+        result.errors.bip39 ||
+        result.errors.shareValidation !== null;
       expect(hasError).toBe(true);
     });
 
     it('should detect checksum errors with corrupted Global Integrity Check (GIC)', async () => {
-      const shares = await splitMnemonic(testMnemonic, 2, 3);
+      const { shares } = await splitBip39(testMnemonic, 2, 3);
       
       // Corrupt the Global Integrity Check (GIC) share with a valid but incorrect value
       const corruptedShare = {
@@ -268,23 +271,24 @@ describe('Polynomial Checksum Functions (introduced in v0.4.0)', () => {
         globalIntegrityCheckShare: (shares[0].globalIntegrityCheckShare + 100) % 2053
       };
       
-      const result = await recoverMnemonic([corruptedShare, shares[1]], 12);
+      const result = await recoverAndValidate([corruptedShare, shares[1]], 12);
       
       expect(result.success).toBe(false);
-      // Should detect checksum error (path mismatch, global error, or BIP39 failure)
-      const hasError = result.errors.globalPathMismatch || 
-                      result.errors.global || 
-                      result.errors.bip39;
+      const hasError =
+        result.errors.globalPathMismatch ||
+        result.errors.global ||
+        result.errors.bip39 ||
+        result.errors.shareValidation !== null;
       expect(hasError).toBe(true);
     });
 
     it('should work with higher thresholds (k=3)', async () => {
-      const shares = await splitMnemonic(testMnemonic, 3, 5);
+      const { shares } = await splitBip39(testMnemonic, 3, 5);
       
-      const result = await recoverMnemonic([shares[0], shares[2], shares[4]], 12);
+      const result = await recoverAndValidate([shares[0], shares[2], shares[4]], 12);
       
       expect(result.success).toBe(true);
-      expect(result.mnemonic).toBe(testMnemonic);
+      expect(result.recoveredMnemonic).toBe(testMnemonic);
       expect(result.errors.rowPathMismatch).toHaveLength(0);
       expect(result.errors.globalPathMismatch).toBe(false);
     });

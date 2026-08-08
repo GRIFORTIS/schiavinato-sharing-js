@@ -2,6 +2,7 @@
   "mnemonic": "spin result brand ahead poet carpet unusual chronic denial festival toy autumn",
   "k": 2,
   "n": 3,
+  "version": "0.5.0",
   "shares": [
     {
       "shareNumber": 1,
@@ -20,12 +21,17 @@
         137
       ],
       "checksumShares": [
-        1318,
-        1671,
-        667,
-        629
+        1319,
+        1673,
+        670,
+        633
       ],
-      "globalIntegrityCheckShare": 180
+      "columnChecksumShares": [
+        233,
+        913,
+        1146
+      ],
+      "globalIntegrityCheckShare": 250
     },
     {
       "shareNumber": 2,
@@ -44,12 +50,17 @@
         148
       ],
       "checksumShares": [
-        1321,
-        1683,
-        688,
-        659
+        1322,
+        1685,
+        691,
+        663
       ],
-      "globalIntegrityCheckShare": 247
+      "columnChecksumShares": [
+        251,
+        935,
+        1172
+      ],
+      "globalIntegrityCheckShare": 317
     },
     {
       "shareNumber": 3,
@@ -68,12 +79,17 @@
         159
       ],
       "checksumShares": [
-        1324,
-        1695,
-        709,
-        689
+        1325,
+        1697,
+        712,
+        693
       ],
-      "globalIntegrityCheckShare": 314
+      "columnChecksumShares": [
+        269,
+        957,
+        1198
+      ],
+      "globalIntegrityCheckShare": 384
     }
   ]
 }
