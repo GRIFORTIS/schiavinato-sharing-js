@@ -5,6 +5,10 @@
 [![CodeQL](https://github.com/GRIFORTIS/durashare-js/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/GRIFORTIS/durashare-js/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+**DuraShare: BIP39-Native Threshold Backup over GF(2053) with Full Manual Fallback and Per-Share Audit**
+
+DuraShare uses Shamir secret sharing to split a **standard BIP39** recovery phrase into **k-of-n** durable, human-readable shares in an offline, software-assisted experience, **while keeping all the math executable manually on paper**. It also allows **individual geographically distributed shares to be verified** before recovery, without gathering a threshold or revealing the secret.
+
 DuraShare **modifies existing, well-established cryptographic techniques** for human-friendly threshold backup. This validator is thoroughly tested, published in good faith **as is**, and has **not** been independently audited. **Do not use with real funds.** See [Disclaimer](#disclaimer).
 
 Single-file, browser-based validator for the DuraShare JavaScript/TypeScript library. This is a **development/auditing tool** for testing, conformance checks, and demonstrations — not a wallet tool.
@@ -100,10 +104,24 @@ This validator complements automated testing and canonical test vectors:
 
 ---
 
+## People
+
+### Renato Schiavinato Lopez — Founder & Protocol Author
+- Creator of DuraShare.
+- [LinkedIn](https://www.linkedin.com/in/renato-agile-coach/) · [GitHub](https://github.com/renatoslopes)
+
+### Jeroen van de Graaf — Chief Scientist; Advisory Board
+- Professor, DCC–UFMG. Cryptographer (ZK, MPC, privacy, applied protocols); PhD, Université de Montréal (1997).
+- [DCC/UFMG](https://dcc.ufmg.br/professor/jeroen-van-de-graaf/) · [DBLP](https://dblp.org/pid/27/6925.html) · [Lattes](http://lattes.cnpq.br/0069989873499216) · [Google Scholar](https://scholar.google.com.br/citations?user=-w8olWwAAAAJ)
+
 ## License
 
-[MIT License](LICENSE)
+[MIT License](../LICENSE)
 
 ## Disclaimer
 
-This software has been thoroughly tested and is not known to contain errors. It is made available in good faith, as is, so use at your own risk. The author does not assume any responsibility for any damage, financial or other, that may result from using this software. It has not been independently audited. **Do not use with real funds.** See [SECURITY](https://github.com/GRIFORTIS/.github/blob/main/SECURITY.md).
+Software has been thoroughly tested and is not known to contain errors. It is made available in good faith, as is, so use at your own risk. The author does not assume any responsibility for any damage, financial or other, that may result from using this software. Reference implementations have not been independently audited. **Do not use with real funds.** See [SECURITY](https://github.com/GRIFORTIS/.github/blob/main/SECURITY.md).
+
+---
+
+**Maintained by**: [GRIFORTIS](https://github.com/GRIFORTIS)
