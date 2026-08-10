@@ -14,26 +14,25 @@
 
 DuraShare uses Shamir secret sharing to split a **standard BIP39** recovery phrase into **k-of-n** durable, human-readable shares in an offline, software-assisted experience, **while keeping all the math executable manually on paper**. It also allows **individual geographically distributed shares to be verified** before recovery, without gathering a threshold or revealing the secret.
 
-DuraShare **modifies existing, well-established cryptographic techniques** for human-friendly threshold backup. This library is thoroughly tested, published in good faith **as is**, and has **not** been independently audited. **Do not use with real funds.** See [Disclaimer](#disclaimer).
+DuraShare **modifies existing, well-established cryptographic techniques** for human-friendly threshold backup. Reference implementations are thoroughly tested, published in good faith **as is**, and have **not** been independently audited. See [Disclaimer](#disclaimer).
 
+## What is this?
 
-Canonical source of truth: **[GRIFORTIS/durashare](https://github.com/GRIFORTIS/durashare)** (whitepaper, manual/software specs, test vectors, security model).
+JavaScript/TypeScript library for DuraShare (browser global: `DuraShare`). Split and recover BIP39 mnemonics with integrity checks against the canonical arithmetic share-table subset.
 
 > **Note:** This JS/TS library is not yet full protocol v0.7.0.
 
----
+## Links
 
-## This repository
-
-JavaScript/TypeScript library for DuraShare. Browser global: `DuraShare`.
-
-### Links
-
-- **Spec / whitepaper**: [durashare](https://github.com/GRIFORTIS/durashare)
-- **HTML tool**: [durashare-html](https://github.com/GRIFORTIS/durashare-html)
-- **Python**: [durashare-py](https://github.com/GRIFORTIS/durashare-py)
-- **Security**: [SECURITY](https://github.com/GRIFORTIS/.github/blob/main/SECURITY.md)
+- **Canonical specification**: [durashare](https://github.com/GRIFORTIS/durashare)
+  - Standing review guide: [docs/review](https://github.com/GRIFORTIS/durashare/blob/main/docs/review.md)
+- **Whitepaper**: [PDF (latest)](https://github.com/GRIFORTIS/durashare/releases/latest/download/WHITEPAPER.pdf) | [Releases](https://github.com/GRIFORTIS/durashare/releases) | [LaTeX](https://github.com/GRIFORTIS/durashare/blob/main/whitepaper/WHITEPAPER.tex)
+- **Test vectors**: [TEST_VECTORS](https://github.com/GRIFORTIS/durashare/blob/main/test_vectors/README.md)
+- **Related implementations**:
+  - HTML (single-file, air-gapped): [durashare-html](https://github.com/GRIFORTIS/durashare-html)
+  - Python: [durashare-py](https://github.com/GRIFORTIS/durashare-py)
 - **Validator (dev tool)**: [`validator/README`](./validator/README.md)
+- **Security**: [SECURITY](https://github.com/GRIFORTIS/.github/blob/main/SECURITY.md)
 
 ### Install
 
