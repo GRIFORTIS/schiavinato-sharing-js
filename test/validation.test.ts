@@ -3,7 +3,14 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { sanitizeMnemonic, ensureSupportedWordCount, normalizeShareValue, validateSharesForRecovery, ensureShareNumbersDistinct, WORDS_PER_ROW } from '../src/utils/validation';
+import {
+  sanitizeMnemonic,
+  ensureSupportedWordCount,
+  normalizeShareValue,
+  validateSharesForRecovery,
+  ensureShareNumbersDistinct,
+  WORDS_PER_ROW
+} from '../src/utils/validation';
 import type { ShareData } from '../src/types';
 
 describe('Validation utilities', () => {
@@ -14,12 +21,22 @@ describe('Validation utilities', () => {
   });
 
   it('rejects unsupported word counts', () => {
-    expect(() => ensureSupportedWordCount(15)).toThrow('supports only 12- or 24-word');
+    expect(() => ensureSupportedWordCount(11)).toThrow(
+      'supports only 12, 15, 18, 21, or 24-word'
+    );
+  });
+
+  it('accepts 15-word length (v0.5.0 / HTML alignment)', () => {
+    expect(() => ensureSupportedWordCount(15)).not.toThrow();
   });
 
   it('validates share values are within GF(2053)', () => {
-    expect(() => normalizeShareValue(2053, 'test')).toThrow('must be between 0 and 2052');
-    expect(() => normalizeShareValue(-1, 'test')).toThrow('must be between 0 and 2052');
+    expect(() => normalizeShareValue(2053, 'test')).toThrow(
+      'must be between 0 and 2052'
+    );
+    expect(() => normalizeShareValue(-1, 'test')).toThrow(
+      'must be between 0 and 2052'
+    );
   });
 
   it('validates share structure and detects missing fields', () => {
@@ -28,20 +45,38 @@ describe('Validation utilities', () => {
       shareNumber: 0,
       wordShares: new Array(12).fill(1),
       checksumShares: new Array(12 / WORDS_PER_ROW).fill(1),
-      // @ts-expect-error intentional omission
+      columnChecksumShares: [1, 2, 3],
       globalIntegrityCheckShare: undefined
     };
-    expect(() => validateSharesForRecovery([bad], 12)).toThrow('missing a valid share number');
+    expect(() => validateSharesForRecovery([bad], 12)).toThrow(
+      'missing a valid share number'
+    );
   });
 
   it('validates checksum length', () => {
     const bad: ShareData = {
       shareNumber: 1,
       wordShares: new Array(12).fill(1),
-      checksumShares: [], // wrong length
+      checksumShares: [],
+      columnChecksumShares: [1, 2, 3],
       globalIntegrityCheckShare: 1
     };
-    expect(() => validateSharesForRecovery([bad], 12)).toThrow('does not contain 4 checksum values');
+    expect(() => validateSharesForRecovery([bad], 12)).toThrow(
+      'invalid row checksum storage'
+    );
+  });
+
+  it('validates column checksum storage', () => {
+    const bad: ShareData = {
+      shareNumber: 1,
+      wordShares: new Array(12).fill(1),
+      checksumShares: new Array(4).fill(1),
+      columnChecksumShares: [1, 2],
+      globalIntegrityCheckShare: 1
+    };
+    expect(() => validateSharesForRecovery([bad], 12)).toThrow(
+      'invalid column checksum storage'
+    );
   });
 
   it('detects duplicate share numbers', () => {
@@ -49,9 +84,12 @@ describe('Validation utilities', () => {
       shareNumber: 1,
       wordShares: new Array(12).fill(1),
       checksumShares: new Array(4).fill(1),
+      columnChecksumShares: [1, 2, 3],
       globalIntegrityCheckShare: 1
     };
     const s2 = { ...s1 };
-    expect(() => ensureShareNumbersDistinct([s1, s2])).toThrow('Duplicate share numbers detected.');
+    expect(() => ensureShareNumbersDistinct([s1, s2])).toThrow(
+      'Duplicate share numbers detected.'
+    );
   });
 });

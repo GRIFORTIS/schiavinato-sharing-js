@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Verify SHA256 checksums for @grifortis/schiavinato-sharing
+# Verify SHA256 checksums for DuraShare (JS)
 #
 # Usage:
 #   ./scripts/verify-checksums.sh [version]
@@ -12,10 +12,10 @@
 set -e
 
 VERSION="${1:-latest}"
-REPO="GRIFORTIS/schiavinato-sharing-js"
+REPO="GRIFORTIS/durashare-js"
 CHECKSUMS_FILE="CHECKSUMS-LIBRARY.txt"
 
-echo "🔐 Verifying checksums for @grifortis/schiavinato-sharing"
+echo "🔐 Verifying checksums for DuraShare (JS)"
 echo ""
 
 # Colors

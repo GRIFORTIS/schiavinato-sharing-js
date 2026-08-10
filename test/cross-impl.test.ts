@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { splitMnemonic, configureRandomSource } from '../src/index';
+import { splitBip39, configureRandomSource } from '../src/index';
 import reference from './fixtures/reference-shares.json';
 
 describe('Cross-implementation regression', () => {
@@ -20,7 +20,7 @@ describe('Cross-implementation regression', () => {
       }
     });
 
-    const shares = await splitMnemonic(mnemonic, k, n);
+    const { shares } = await splitBip39(mnemonic, k, n);
 
     expect(shares).toEqual(expected);
 

@@ -6,8 +6,8 @@
 
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { splitMnemonic, recoverMnemonic } from '../src/index';
-import { computeRowChecks, computeGlobalIntegrityCheck } from '../src/schiavinato/checksums';
+import { splitBip39, recoverAndValidate } from '../src/index';
+import { computeRowChecks, computeGlobalIntegrityCheck } from '../src/durashare/checksums';
 
 // Known valid BIP39 mnemonics (12 words) from test vectors
 const validMnemonics = [
@@ -26,13 +26,13 @@ describe('Property-based tests (bounded)', () => {
         fc.integer({ min: 2, max: 3 }), // k (bounded to keep runtime small)
         async (mnemonic, n, k) => {
           if (k > n) return true; // skip invalid combos
-          const shares = await splitMnemonic(mnemonic, k, n);
+          const { shares } = await splitBip39(mnemonic, k, n);
 
           // choose first k shares for recovery
           const subset = shares.slice(0, k);
-          const result = await recoverMnemonic(subset, 12);
+          const result = await recoverAndValidate(subset, 12);
 
-          return result.success && result.mnemonic === mnemonic;
+          return result.success && result.recoveredMnemonic === mnemonic;
         }
       ),
       { numRuns: 25 }
@@ -47,7 +47,7 @@ describe('Property-based tests (bounded)', () => {
         fc.integer({ min: 3, max: 5 }),
         async (mnemonic, k, n) => {
           if (k > n) return true;
-          const shares = await splitMnemonic(mnemonic, k, n);
+          const { shares } = await splitBip39(mnemonic, k, n);
 
           // Build word polynomial evaluations from shares per x
           // Using shares themselves: for a given share index, wordShares are f_i(x_j)
@@ -56,13 +56,12 @@ describe('Property-based tests (bounded)', () => {
             const rowSums = computeRowChecks(share.wordShares);
             const globalSum = computeGlobalIntegrityCheck(share.wordShares);
 
-            // Build pseudo-polynomials: since we don't have coefficients, we validate equality directly
-            // across all shares: each checksum share must equal the sum for that share index.
             expect(share.checksumShares).toEqual(rowSums);
-            
-            // GIC includes share number: GIC.SX = (sum + X) mod 2053 (per TEST_VECTORS Section 3.3)
+
+            // Printed GIC = (unbound + X) mod 2053
             const expectedGIC = (globalSum + share.shareNumber) % 2053;
             expect(share.globalIntegrityCheckShare).toBe(expectedGIC);
+            expect(share.columnChecksumShares).toHaveLength(3);
           }
 
           return true;

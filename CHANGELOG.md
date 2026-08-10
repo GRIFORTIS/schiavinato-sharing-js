@@ -14,6 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Repo-local `.github/SECURITY.md`, `.github/CONTRIBUTING.md`, `.github/ISSUE_TEMPLATE/bug_report.md`, and `.github/ISSUE_TEMPLATE/feature_request.md` in favor of org-wide defaults.
 
+## [0.5.0] - 2026-07-28
+
+### Changed
+- Renamed brand from Schiavinato Sharing to **DuraShare**: docs, repo URLs (`GRIFORTIS/durashare-js`), release/validator artifact names (`durashare-*`), browser global `DuraShare`, source path `src/durashare/`.
+- Protocol alignment with HTML **v0.5.0** share-table subset: position-bound row checksums, column checksums (Col1–Col3), printed GIC = unbound + X.
+- Public API renamed to match HTML: `splitBip39` → `{ shares }`, `recoverAndValidate`, `validateBIP39Mnemonic`, `configureEnvironment`, `clearSensitiveArray`, column helpers.
+- Word counts: 12, 15, 18, 21, and 24 supported (aligned with HTML).
+
+### Notes
+- Published npm package name remains `@grifortis/schiavinato-sharing` until a separate registry rename.
+- Historical CHANGELOG entries and pre-rename release asset names are left as published history.
+- README presents DuraShare per the canonical whitepaper/spec and points to `GRIFORTIS/durashare`; one note that this library is not yet full protocol v0.7.0.
+
 ## [0.4.1] - 2026-02-01
 
 ### Security

@@ -15,7 +15,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { splitMnemonic, recoverMnemonic, generateValidMnemonic } from '../src/index';
+import { splitBip39, recoverAndValidate, generateValidMnemonic } from '../src/index';
 
 /**
  * Helper to generate all k-combinations from n items
@@ -47,7 +47,7 @@ describe('Comprehensive Threshold Schemes - 12-word seeds', () => {
       const mnemonic = await generateValidMnemonic(12);
       
       // Split ONCE into 2-of-3 shares
-      const shares = await splitMnemonic(mnemonic, 2, 3);
+      const { shares } = await splitBip39(mnemonic, 2, 3);
       expect(shares).toHaveLength(3);
       
       // Test ALL 3 combinations: C(3,2) = 3
@@ -56,11 +56,11 @@ describe('Comprehensive Threshold Schemes - 12-word seeds', () => {
       
       for (const combo of combinations) {
         const selectedShares = combo.map(i => shares[i]);
-        const result = await recoverMnemonic(selectedShares, 12);
+        const result = await recoverAndValidate(selectedShares, 12);
         
         // Full validation
         expect(result.success).toBe(true);
-        expect(result.mnemonic).toBe(mnemonic);
+        expect(result.recoveredMnemonic).toBe(mnemonic);
         expect(result.errors.row).toHaveLength(0);
         expect(result.errors.global).toBe(false);
         expect(result.errors.bip39).toBe(false);
@@ -74,7 +74,7 @@ describe('Comprehensive Threshold Schemes - 12-word seeds', () => {
       const mnemonic = await generateValidMnemonic(12);
       
       // Split ONCE into 2-of-4 shares
-      const shares = await splitMnemonic(mnemonic, 2, 4);
+      const { shares } = await splitBip39(mnemonic, 2, 4);
       expect(shares).toHaveLength(4);
       
       // Test ALL 6 combinations: C(4,2) = 6
@@ -83,11 +83,11 @@ describe('Comprehensive Threshold Schemes - 12-word seeds', () => {
       
       for (const combo of combinations) {
         const selectedShares = combo.map(i => shares[i]);
-        const result = await recoverMnemonic(selectedShares, 12);
+        const result = await recoverAndValidate(selectedShares, 12);
         
         // Full validation
         expect(result.success).toBe(true);
-        expect(result.mnemonic).toBe(mnemonic);
+        expect(result.recoveredMnemonic).toBe(mnemonic);
         expect(result.errors.row).toHaveLength(0);
         expect(result.errors.global).toBe(false);
         expect(result.errors.bip39).toBe(false);
@@ -101,7 +101,7 @@ describe('Comprehensive Threshold Schemes - 12-word seeds', () => {
       const mnemonic = await generateValidMnemonic(12);
       
       // Split ONCE into 3-of-5 shares
-      const shares = await splitMnemonic(mnemonic, 3, 5);
+      const { shares } = await splitBip39(mnemonic, 3, 5);
       expect(shares).toHaveLength(5);
       
       // Test ALL 10 combinations: C(5,3) = 10
@@ -110,11 +110,11 @@ describe('Comprehensive Threshold Schemes - 12-word seeds', () => {
       
       for (const combo of combinations) {
         const selectedShares = combo.map(i => shares[i]);
-        const result = await recoverMnemonic(selectedShares, 12);
+        const result = await recoverAndValidate(selectedShares, 12);
         
         // Full validation
         expect(result.success).toBe(true);
-        expect(result.mnemonic).toBe(mnemonic);
+        expect(result.recoveredMnemonic).toBe(mnemonic);
         expect(result.errors.row).toHaveLength(0);
         expect(result.errors.global).toBe(false);
         expect(result.errors.bip39).toBe(false);
@@ -130,7 +130,7 @@ describe('Comprehensive Threshold Schemes - 24-word seeds', () => {
       const mnemonic = await generateValidMnemonic(24);
       
       // Split ONCE into 2-of-3 shares
-      const shares = await splitMnemonic(mnemonic, 2, 3);
+      const { shares } = await splitBip39(mnemonic, 2, 3);
       expect(shares).toHaveLength(3);
       expect(shares[0].wordShares).toHaveLength(24);
       expect(shares[0].checksumShares).toHaveLength(8); // 24 / 3 = 8 rows
@@ -141,11 +141,11 @@ describe('Comprehensive Threshold Schemes - 24-word seeds', () => {
       
       for (const combo of combinations) {
         const selectedShares = combo.map(i => shares[i]);
-        const result = await recoverMnemonic(selectedShares, 24);
+        const result = await recoverAndValidate(selectedShares, 24);
         
         // Full validation
         expect(result.success).toBe(true);
-        expect(result.mnemonic).toBe(mnemonic);
+        expect(result.recoveredMnemonic).toBe(mnemonic);
         expect(result.errors.row).toHaveLength(0);
         expect(result.errors.global).toBe(false);
         expect(result.errors.bip39).toBe(false);
@@ -159,7 +159,7 @@ describe('Comprehensive Threshold Schemes - 24-word seeds', () => {
       const mnemonic = await generateValidMnemonic(24);
       
       // Split ONCE into 2-of-4 shares
-      const shares = await splitMnemonic(mnemonic, 2, 4);
+      const { shares } = await splitBip39(mnemonic, 2, 4);
       expect(shares).toHaveLength(4);
       expect(shares[0].wordShares).toHaveLength(24);
       expect(shares[0].checksumShares).toHaveLength(8);
@@ -170,11 +170,11 @@ describe('Comprehensive Threshold Schemes - 24-word seeds', () => {
       
       for (const combo of combinations) {
         const selectedShares = combo.map(i => shares[i]);
-        const result = await recoverMnemonic(selectedShares, 24);
+        const result = await recoverAndValidate(selectedShares, 24);
         
         // Full validation
         expect(result.success).toBe(true);
-        expect(result.mnemonic).toBe(mnemonic);
+        expect(result.recoveredMnemonic).toBe(mnemonic);
         expect(result.errors.row).toHaveLength(0);
         expect(result.errors.global).toBe(false);
         expect(result.errors.bip39).toBe(false);
@@ -188,7 +188,7 @@ describe('Comprehensive Threshold Schemes - 24-word seeds', () => {
       const mnemonic = await generateValidMnemonic(24);
       
       // Split ONCE into 3-of-5 shares
-      const shares = await splitMnemonic(mnemonic, 3, 5);
+      const { shares } = await splitBip39(mnemonic, 3, 5);
       expect(shares).toHaveLength(5);
       expect(shares[0].wordShares).toHaveLength(24);
       expect(shares[0].checksumShares).toHaveLength(8);
@@ -199,11 +199,11 @@ describe('Comprehensive Threshold Schemes - 24-word seeds', () => {
       
       for (const combo of combinations) {
         const selectedShares = combo.map(i => shares[i]);
-        const result = await recoverMnemonic(selectedShares, 24);
+        const result = await recoverAndValidate(selectedShares, 24);
         
         // Full validation
         expect(result.success).toBe(true);
-        expect(result.mnemonic).toBe(mnemonic);
+        expect(result.recoveredMnemonic).toBe(mnemonic);
         expect(result.errors.row).toHaveLength(0);
         expect(result.errors.global).toBe(false);
         expect(result.errors.bip39).toBe(false);
@@ -216,7 +216,7 @@ describe('Edge Cases and Validation', () => {
   describe('Share structure validation', () => {
     it('should generate correct structure for 12-word 2-of-3', async () => {
       const mnemonic = await generateValidMnemonic(12);
-      const shares = await splitMnemonic(mnemonic, 2, 3);
+      const { shares } = await splitBip39(mnemonic, 2, 3);
       
       for (const share of shares) {
         expect(share.wordShares).toHaveLength(12);
@@ -229,7 +229,7 @@ describe('Edge Cases and Validation', () => {
 
     it('should generate correct structure for 24-word 3-of-5', async () => {
       const mnemonic = await generateValidMnemonic(24);
-      const shares = await splitMnemonic(mnemonic, 3, 5);
+      const { shares } = await splitBip39(mnemonic, 3, 5);
       
       for (const share of shares) {
         expect(share.wordShares).toHaveLength(24);
@@ -244,60 +244,60 @@ describe('Edge Cases and Validation', () => {
   describe('Insufficient shares', () => {
     it('should produce incorrect mnemonic with k-1 shares for 2-of-3', async () => {
       const mnemonic = await generateValidMnemonic(12);
-      const shares = await splitMnemonic(mnemonic, 2, 3);
+      const { shares } = await splitBip39(mnemonic, 2, 3);
       
       // Try with only 1 share (need 2)
       // Lagrange interpolation will produce A result, but it will be wrong
-      const result = await recoverMnemonic([shares[0]], 12);
+      const result = await recoverAndValidate([shares[0]], 12);
       
       // The recovered mnemonic should be different from the original
       // (might have valid BIP39 checksum by chance ~6% of time, so we don't check success flag)
-      expect(result.mnemonic).not.toBe(mnemonic);
+      expect(result.recoveredMnemonic).not.toBe(mnemonic);
     });
 
     it('should produce incorrect mnemonic with k-1 shares for 3-of-5', async () => {
       const mnemonic = await generateValidMnemonic(12);
-      const shares = await splitMnemonic(mnemonic, 3, 5);
+      const { shares } = await splitBip39(mnemonic, 3, 5);
       
       // Try with only 2 shares (need 3)  
       // Lagrange interpolation will produce A result, but it will be wrong
-      const result = await recoverMnemonic([shares[0], shares[1]], 12);
+      const result = await recoverAndValidate([shares[0], shares[1]], 12);
       
       // The recovered mnemonic MUST be different from the original
       // This verifies threshold security: k-1 shares don't reveal the secret
-      expect(result.mnemonic).not.toBe(mnemonic);
+      expect(result.recoveredMnemonic).not.toBe(mnemonic);
     });
   });
 
   describe('Overdetermined recovery (more than k shares)', () => {
     it('should recover with all n shares for 2-of-3', async () => {
       const mnemonic = await generateValidMnemonic(12);
-      const shares = await splitMnemonic(mnemonic, 2, 3);
+      const { shares } = await splitBip39(mnemonic, 2, 3);
       
       // Use all 3 shares (only need 2)
-      const result = await recoverMnemonic(shares, 12);
+      const result = await recoverAndValidate(shares, 12);
       expect(result.success).toBe(true);
-      expect(result.mnemonic).toBe(mnemonic);
+      expect(result.recoveredMnemonic).toBe(mnemonic);
     });
 
     it('should recover with all n shares for 3-of-5', async () => {
       const mnemonic = await generateValidMnemonic(12);
-      const shares = await splitMnemonic(mnemonic, 3, 5);
+      const { shares } = await splitBip39(mnemonic, 3, 5);
       
       // Use all 5 shares (only need 3)
-      const result = await recoverMnemonic(shares, 12);
+      const result = await recoverAndValidate(shares, 12);
       expect(result.success).toBe(true);
-      expect(result.mnemonic).toBe(mnemonic);
+      expect(result.recoveredMnemonic).toBe(mnemonic);
     });
 
     it('should recover with k+1 shares for 3-of-5', async () => {
       const mnemonic = await generateValidMnemonic(12);
-      const shares = await splitMnemonic(mnemonic, 3, 5);
+      const { shares } = await splitBip39(mnemonic, 3, 5);
       
       // Use 4 shares (only need 3)
-      const result = await recoverMnemonic([shares[0], shares[1], shares[2], shares[3]], 12);
+      const result = await recoverAndValidate([shares[0], shares[1], shares[2], shares[3]], 12);
       expect(result.success).toBe(true);
-      expect(result.mnemonic).toBe(mnemonic);
+      expect(result.recoveredMnemonic).toBe(mnemonic);
     });
   });
 });

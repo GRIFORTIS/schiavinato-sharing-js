@@ -79,19 +79,22 @@ export function constantTimeStringEqual(a: string, b: string): boolean {
 }
 
 /**
- * Securely overwrites an array with zeros.
- * 
- * This function attempts to prevent sensitive data from remaining in memory
- * by explicitly overwriting array contents. While JavaScript's garbage collector
- * will eventually reclaim memory, this reduces the window of vulnerability to
- * memory dump attacks.
- * 
- * @param arr - Array to wipe (will be modified in place)
- * 
- * @example
- * const secretKeys = [1679, 456, 892];
- * // ... use the keys ...
- * secureWipeArray(secretKeys); // Now [0, 0, 0]
+ * Best-effort in-place clear of a mutable array (typically field elements / coeffs).
+ * Zeros elements then truncates length. Not a guarantee against memory forensics.
+ *
+ * @param arr - Array to clear (modified in place)
+ */
+export function clearSensitiveArray(arr: unknown[]): void {
+  if (Array.isArray(arr)) {
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = 0;
+    }
+    arr.length = 0;
+  }
+}
+
+/**
+ * @deprecated Use clearSensitiveArray. Zeros elements without truncating length.
  */
 export function secureWipeArray(arr: number[]): void {
   if (Array.isArray(arr)) {

@@ -1,7 +1,7 @@
 {
-  "name": "schiavinato-validator-dev",
-  "version": "0.4.1",
-  "description": "Interactive browser-based validator and testing tool for Schiavinato Sharing - human-executable secret sharing for BIP39 mnemonics",
+  "name": "durashare-validator-dev",
+  "version": "0.5.0",
+  "description": "Interactive browser-based validator and testing tool for DuraShare - human-executable secret sharing for BIP39 mnemonics",
   "private": true,
   "main": "JS_Library_Validator.html",
   "files": [
@@ -17,7 +17,7 @@
     "validator",
     "audit",
     "testing",
-    "schiavinato-sharing",
+    "durashare",
     "bip39",
     "shamir",
     "secret-sharing",
@@ -34,13 +34,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GRIFORTIS/schiavinato-sharing-js.git",
+    "url": "git+https://github.com/GRIFORTIS/durashare-js.git",
     "directory": "validator"
   },
   "bugs": {
-    "url": "https://github.com/GRIFORTIS/schiavinato-sharing-js/issues"
+    "url": "https://github.com/GRIFORTIS/durashare-js/issues"
   },
-  "homepage": "https://github.com/GRIFORTIS/schiavinato-sharing-js/tree/main/validator#readme",
+  "homepage": "https://github.com/GRIFORTIS/durashare-js/tree/main/validator#readme",
   "engines": {
     "node": ">=18.0.0"
   }

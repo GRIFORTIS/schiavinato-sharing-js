@@ -1,76 +1,80 @@
 /**
- * Schiavinato Sharing - TypeScript Type Definitions
- * 
- * This module defines all public and internal types used by the library.
+ * DuraShare - TypeScript Type Definitions
+ *
+ * Public and internal types used by the library (protocol v0.5.0).
  */
 
 /**
- * Represents a single Shamir share containing word shares, checksums, and Global Integrity Check (GIC).
+ * A single Shamir share: word shares, row/column checksums, and printed GIC.
  */
 export interface Share {
   /** The X coordinate for this share (must be unique and non-zero) */
   shareNumber: number;
-  
-  /** Array of word index shares (length = number of words in mnemonic) */
+
+  /** Word index shares (length = word count) */
   wordShares: number[];
-  
-  /** Array of row checksum shares (length = number of rows = wordCount / 3) */
+
+  /** Row checksum shares (length = wordCount / 3) */
   checksumShares: number[];
-  
-  /** Global Integrity Check (GIC) verification number share */
+
+  /** Column checksum shares Col1–Col3 (length 3) */
+  columnChecksumShares: number[];
+
+  /** Printed Global Integrity Check (GIC), bound with share number X */
   globalIntegrityCheckShare: number;
 }
 
 /**
- * Input format for share data during recovery (same as Share interface).
+ * Input format for recovery. Checksum/GIC slots may be blank (non-integer).
+ * Optional shareIndex is a 1-based UI slot for error highlighting.
  */
 export interface ShareData {
-  /** The X coordinate for this share (must be unique and non-zero) */
   shareNumber: number;
-  
-  /** Array of word index shares */
   wordShares: number[];
-  
-  /** Array of row checksum shares */
-  checksumShares: number[];
-  
-  /** Global Integrity Check (GIC) verification number share */
-  globalIntegrityCheckShare: number;
+  checksumShares: Array<number | undefined>;
+  columnChecksumShares: Array<number | undefined>;
+  globalIntegrityCheckShare?: number;
+  shareIndex?: number;
 }
 
 /**
- * Result object returned by the recovery function.
+ * Result of recoverAndValidate (aligned with HTML tool report shape).
  */
 export interface RecoveryResult {
-  /** The recovered mnemonic phrase (null if recovery failed) */
-  mnemonic: string | null;
-  
+  /** Recovered mnemonic phrase (null if indices out of BIP39 range) */
+  recoveredMnemonic: string | null;
+
+  /** Copy of recovered 1-based BIP39 indices (or null) */
+  recoveredIndices: number[] | null;
+
   /** Detailed error information */
   errors: {
-    /** Array of row indices that failed checksum validation */
     row: number[];
-    
-    /** True if the Global Integrity Check (GIC) failed */
     global: boolean;
-    
-    /** True if the BIP39 checksum validation failed */
     bip39: boolean;
-    
-    /** Generic error message (e.g., invalid inputs, structural errors) */
     generic: string | null;
-    
-    /** Introduced in v0.4.0: Array of row indices where Path A and Path B checksums disagree */
-    rowPathMismatch?: number[];
-    
-    /** Introduced in v0.4.0: True if Path A and Path B Global Integrity Check (GIC) disagree */
-    globalPathMismatch?: boolean;
+    shareValidation: {
+      rowErrors: { shareIndex: number; rowIndex: number }[];
+      columnErrors: { shareIndex: number; columnIndex: number }[];
+      globalErrors: { shareIndex: number }[];
+      message: string;
+    } | null;
+    rowPathMismatch: number[];
+    globalPathMismatch: boolean;
+    column: number[];
+    failedRows: {
+      rowNumber: number;
+      wordPositions: number[];
+      checksumLabel: string;
+    }[];
+    globalIntegrityCheckError: {
+      failed: boolean;
+      isNightmare: boolean;
+    };
   };
-  
-  /** True if recovery was successful with no errors */
+
+  /** True when recovery succeeded with no DuraShare or BIP39 errors */
   success: boolean;
-  
-  /** Set of share numbers that had invalid checksums (if any) */
-  sharesWithInvalidChecksums?: Set<number>;
 }
 
 /**
@@ -87,9 +91,16 @@ export interface SplitOptions {
 export interface RecoverOptions {
   /** Custom BIP39 wordlist (defaults to English) */
   wordlist?: string[];
-  
+
   /** If true, strictly validate BIP39 checksum (default: true) */
   strictValidation?: boolean;
+}
+
+/**
+ * Result of splitBip39 (aligned with HTML tool).
+ */
+export interface SplitResult {
+  shares: Share[];
 }
 
 /**
@@ -101,13 +112,20 @@ export interface RandomSource {
 }
 
 /**
- * Point on a polynomial curve used for interpolation.
+ * Environment overrides for testing / non-browser hosts.
  */
-export interface Point {
-  /** X coordinate (share number) */
-  x: number;
-  
-  /** Y coordinate (share value) */
-  y: number;
+export interface EnvironmentOptions {
+  randomSource?: RandomSource;
+  /** SHA-256 helper with arrayBuffer(message) — reserved for HTML parity */
+  sha256?: ((message: Uint8Array | string) => unknown) & {
+    arrayBuffer(message: Uint8Array | string): ArrayBuffer | Promise<ArrayBuffer>;
+  };
 }
 
+/**
+ * A point (x, y) on a polynomial for Lagrange interpolation.
+ */
+export interface Point {
+  x: number;
+  y: number;
+}
