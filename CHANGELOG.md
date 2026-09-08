@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Remove `.github/CODECOV_SETUP.md` from `main`. That file contained a live Codecov upload token. The token was rotated outside git; history and npm 0.1.0–0.4.0 still contain the old value and must not be rewritten.
+
 ### Changed
 - Centralize community health references (SECURITY / CONTRIBUTING / issue templates) to the org-wide defaults in `GRIFORTIS/.github`.
 - Update author email from `info@grifortis.com` to `contact@grifortis.com` in `package.json` and `validator/package.json`.
 
 ### Removed
 - Repo-local `.github/SECURITY.md`, `.github/CONTRIBUTING.md`, `.github/ISSUE_TEMPLATE/bug_report.md`, and `.github/ISSUE_TEMPLATE/feature_request.md` in favor of org-wide defaults.
+- `.github/CODECOV_SETUP.md`.
 
 ## [0.4.1] - 2026-02-01
 
